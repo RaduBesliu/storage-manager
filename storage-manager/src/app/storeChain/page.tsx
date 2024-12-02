@@ -1,5 +1,5 @@
 import { HydrateClient } from "~/trpc/server";
-import { UserManagement } from "./_components/UserManagement";
+import { StoreChainManagement } from "../_components/StoreChainManagement";
 
 export default async function Home() {
   return (
@@ -7,9 +7,9 @@ export default async function Home() {
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            User Manager
+            Store Chain Manager
           </h1>
-          <UserManagement />
+          <StoreChainManagement />
         </div>
       </main>
     </HydrateClient>

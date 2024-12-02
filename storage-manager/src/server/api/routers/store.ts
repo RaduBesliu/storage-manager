@@ -8,6 +8,16 @@ export const storeRouter = createTRPCRouter({
     return stores;
   }),
 
+  getByStoreChainId: publicProcedure
+    .input(z.object({ storeChainId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.store.findMany({
+        where: {
+          storeChainId: input.storeChainId,
+        },
+      });
+    }),
+
   create: publicProcedure
     .input(
       z.object({
