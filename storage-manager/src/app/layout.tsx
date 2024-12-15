@@ -29,7 +29,13 @@ export default function RootLayout({
       </head>
       <body>
         <TRPCReactProvider>
-          <MantineProvider>{children}</MantineProvider>
+          <MantineProvider
+            theme={{
+              primaryColor: "teal",
+            }}
+          >
+            {children}
+          </MantineProvider>
         </TRPCReactProvider>
       </body>
     </html>
