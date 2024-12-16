@@ -19,6 +19,7 @@ import {
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 const roleColors: Record<string, string> = {
   SUPER_ADMIN: "blue",
@@ -27,6 +28,8 @@ const roleColors: Record<string, string> = {
 };
 
 export const UserManagement: React.FC = () => {
+  const session = useSession();
+  console.log(session);
   const [opened, { open, close }] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
@@ -53,10 +56,12 @@ export const UserManagement: React.FC = () => {
       name: "",
       email: "",
       role: Role.STORE_EMPLOYEE,
+      password: "",
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
       email: (value) => (value.length > 0 ? null : "Email is required"),
+      password: (value) => (value.length > 0 ? null : "Password is required"),
     },
   });
 
@@ -99,7 +104,7 @@ export const UserManagement: React.FC = () => {
     </Table.Tr>
   ));
 
-  return (
+  return session.status === "authenticated" ? (
     <>
       <div className="flex-col">
         <div className="flex justify-end">
@@ -119,7 +124,6 @@ export const UserManagement: React.FC = () => {
                 <Table.Th>Employee</Table.Th>
                 <Table.Th>Role</Table.Th>
                 <Table.Th>Email</Table.Th>
-                <Table.Th />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>{rows}</Table.Tbody>
@@ -145,6 +149,7 @@ export const UserManagement: React.FC = () => {
                   name: values.name,
                   email: values.email,
                   role: values.role,
+                  password: values.password,
                 });
 
                 createForm.reset();
@@ -176,6 +181,14 @@ export const UserManagement: React.FC = () => {
                 {...createForm.getInputProps("email")}
               />
 
+              <TextInput
+                withAsterisk
+                label="Password"
+                placeholder="********"
+                key={createForm.key("password")}
+                {...createForm.getInputProps("password")}
+              />
+
               <NativeSelect
                 label="Role"
                 key={createForm.key("role")}
@@ -195,5 +208,7 @@ export const UserManagement: React.FC = () => {
         </Flex>
       </Modal>
     </>
+  ) : (
+    <Text>Please sign in to view this page</Text>
   );
 };

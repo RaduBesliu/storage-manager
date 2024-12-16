@@ -1,4 +1,5 @@
 import { z } from "zod";
+import * as bcrypt from "bcrypt";
 import type { Role } from "@prisma/client";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -10,7 +11,7 @@ export const userRouter = createTRPCRouter({
   }),
 
   getById: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.user.findUnique({
         where: {
@@ -25,14 +26,18 @@ export const userRouter = createTRPCRouter({
         name: z.string(),
         email: z.string().min(1),
         role: z.custom<Role>(),
+        password: z.string().min(1),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const hashedPassword = bcrypt.hashSync(input.password, 10);
+
       return ctx.db.user.create({
         data: {
           name: input.name,
           email: input.email,
           role: input.role,
+          password: hashedPassword,
         },
       });
     }),
@@ -40,7 +45,7 @@ export const userRouter = createTRPCRouter({
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.string(),
         name: z.string(),
         email: z.string().min(1),
       }),
@@ -58,7 +63,7 @@ export const userRouter = createTRPCRouter({
     }),
 
   delete: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.user.delete({
         where: {

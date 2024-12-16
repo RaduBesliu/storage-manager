@@ -17,8 +17,11 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 export const StoreChainManagement: React.FC = () => {
+  const session = useSession();
+  console.log(session);
   const [selectedStoreChain, setSelectedStoreChain] = useState(0);
   const [createOpened, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
