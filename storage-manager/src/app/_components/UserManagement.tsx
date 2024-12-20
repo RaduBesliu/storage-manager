@@ -103,19 +103,19 @@ export const UserManagement: React.FC = () => {
 
   return (
     <>
-      <div className="flex-col">
+      <div className="flex flex-col gap-2">
         <div className="flex justify-end">
-          <Button variant="subtle" color="blue" onClick={open}>
+          <Button variant="subtle" color="teal" onClick={open}>
             <div className="flex items-center gap-1">
+              <IconPlus size={16} stroke={1.5} />
               <Text fz="sm" fw={500}>
                 Create User
               </Text>
-              <IconPlus size={16} stroke={1.5} />
             </div>
           </Button>
         </div>
         <Table.ScrollContainer minWidth={800}>
-          <Table verticalSpacing="sm">
+          <Table verticalSpacing="md" className="text-white">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Employee</Table.Th>
@@ -163,6 +163,7 @@ export const UserManagement: React.FC = () => {
           >
             <Flex direction="column" gap="md">
               <TextInput
+                data-autofocus
                 withAsterisk
                 label="Name"
                 placeholder="John Doe"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   IconBell,
@@ -16,18 +16,21 @@ import { Code, Group, Title } from "@mantine/core";
 import classes from "./NavBar.module.scss";
 import { signOut } from "next-auth/react";
 import { cn } from "~/utils/utils";
+import { usePathname } from "next/navigation";
 
 const data = [
-  { link: "/", label: "Users", icon: IconUsers },
-  { link: "/storeChain", label: "Store Chains", icon: IconBuildingWarehouse },
-  { link: "/", label: "Products", icon: IconShoppingCart },
+  { link: "/users", label: "Users", icon: IconUsers },
+  { link: "/storeChains", label: "Store Chains", icon: IconBuildingWarehouse },
+  { link: "/products", label: "Products", icon: IconShoppingCart },
   { link: "/", label: "Alerts", icon: IconBell },
   { link: "/", label: "Orders", icon: IconTruckDelivery },
   { link: "/", label: "Reports", icon: IconReport },
 ];
+const validLinks = data.map((item) => item.link);
 
 export const SuperAdminNavBar: React.FC = () => {
-  const [active, setActive] = useState("Users");
+  const pathname = usePathname();
+  const [active, setActive] = useState("");
 
   const links = data.map((item) => (
     <Link
@@ -44,12 +47,27 @@ export const SuperAdminNavBar: React.FC = () => {
     </Link>
   ));
 
+  useEffect(() => {
+    if (validLinks.includes(pathname)) {
+      setActive(data.find((item) => item.link === pathname)?.label ?? "");
+    }
+  }, [pathname]);
+
   return (
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
         <Group className={cn(classes.header, "w-max justify-between")}>
           <IconLoadBalancer size={28} stroke={1.5} />
-          <Title order={5}>Storage Manager</Title>
+          <Title order={5}>
+            <Link
+              href="/"
+              onClick={() => {
+                setActive("");
+              }}
+            >
+              Storage Manager
+            </Link>
+          </Title>
           <Code fw={700}>v1.0.0</Code>
         </Group>
         {links}
@@ -60,7 +78,7 @@ export const SuperAdminNavBar: React.FC = () => {
           href="#"
           className={classes.link}
           onClick={() => {
-            void signOut();
+            void signOut({ redirectTo: "/" });
           }}
         >
           <IconLogout className={classes.linkIcon} stroke={1.5} />

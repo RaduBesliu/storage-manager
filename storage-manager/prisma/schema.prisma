@@ -92,4 +92,18 @@ model Store {
     createdById  String
     StoreChain   StoreChain? @relation(fields: [storeChainId], references: [id])
     storeChainId Int?
+    Product      Product[]
+}
+
+model Product {
+    id          Int      @id @default(autoincrement())
+    name        String
+    category    String
+    description String
+    price       Float
+    quantity    Int
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    Store       Store    @relation(fields: [storeId], references: [id])
+    storeId     Int
 }

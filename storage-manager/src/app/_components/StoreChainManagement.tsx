@@ -17,11 +17,8 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
-import { useSession } from "next-auth/react";
 
 export const StoreChainManagement: React.FC = () => {
-  const session = useSession();
-  console.log(session);
   const [selectedStoreChain, setSelectedStoreChain] = useState(0);
   const [createOpened, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
@@ -175,86 +172,21 @@ export const StoreChainManagement: React.FC = () => {
     },
   });
 
-  const StoreCreateModal = () => (
-    <Modal
-      {...modalStack.register("create-store-page")}
-      opened={storeCreateOpened}
-      onClose={() => {
-        storeCreateForm.reset();
-        closeStoreCreate();
-      }}
-      title="Create Store"
-      size="lg"
-      centered
-      overlayProps={{
-        backgroundOpacity: 0.45,
-        blur: 5,
-      }}
-    >
-      <Flex direction="column">
-        <form
-          onSubmit={storeCreateForm.onSubmit(
-            (values) => {
-              doCreateStore.mutate({
-                name: values.name,
-                location: values.location,
-                storeChainId: selectedStoreChain,
-              });
-
-              storeCreateForm.reset();
-              closeStoreCreate();
-            },
-            (validationErrors, values, event) => {
-              console.log(
-                validationErrors, // <- form.errors at the moment of submit
-                values, // <- form.getValues() at the moment of submit
-                event, // <- form element submit event
-              );
-            },
-          )}
-        >
-          <Flex direction="column" gap="md">
-            <TextInput
-              data-autofocus
-              withAsterisk
-              label="Name"
-              placeholder="Store Name"
-              key={storeCreateForm.key("name")}
-              {...storeCreateForm.getInputProps("name")}
-            />
-
-            <TextInput
-              withAsterisk
-              label="Location"
-              placeholder="Store Location"
-              key={storeCreateForm.key("location")}
-              {...storeCreateForm.getInputProps("location")}
-            />
-
-            <Group justify="flex-end" mt="md">
-              <Button type="submit">Submit</Button>
-            </Group>
-          </Flex>
-        </form>
-      </Flex>
-    </Modal>
-  );
-
   return (
     <>
-      <div className="flex-col">
+      <div className="flex flex-col gap-2">
         <div className="flex justify-end">
-          <Button variant="subtle" color="blue" onClick={openCreate}>
+          <Button variant="subtle" color="teal" onClick={openCreate}>
             <div className="flex items-center gap-1">
+              <IconPlus size={16} stroke={1.5} />
               <Text fz="sm" fw={500}>
                 Create Store Chain
               </Text>
-              <IconPlus size={16} stroke={1.5} />
             </div>
           </Button>
         </div>
         <Table.ScrollContainer minWidth={800}>
-          <Table verticalSpacing="sm">
+          <Table verticalSpacing="md" className="text-white">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Name</Table.Th>
@@ -338,17 +270,17 @@ export const StoreChainManagement: React.FC = () => {
           }}
         >
           <div className="flex justify-end">
-            <Button variant="subtle" color="blue" onClick={openStoreCreate}>
+            <Button variant="subtle" color="teal" onClick={openStoreCreate}>
               <div className="flex items-center gap-1">
+                <IconPlus size={16} stroke={1.5} />
                 <Text fz="sm" fw={500}>
                   Create Store
                 </Text>
-                <IconPlus size={16} stroke={1.5} />
               </div>
             </Button>
           </div>
           <Table.ScrollContainer minWidth={800}>
-            <Table verticalSpacing="sm">
+            <Table verticalSpacing="md">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Name</Table.Th>
@@ -361,7 +293,68 @@ export const StoreChainManagement: React.FC = () => {
           </Table.ScrollContainer>
         </Modal>
 
-        <StoreCreateModal />
+        <Modal
+          {...modalStack.register("create-store-page")}
+          opened={storeCreateOpened}
+          onClose={() => {
+            storeCreateForm.reset();
+            closeStoreCreate();
+          }}
+          title="Create Store"
+          size="lg"
+          centered
+          overlayProps={{
+            backgroundOpacity: 0.45,
+            blur: 5,
+          }}
+        >
+          <Flex direction="column">
+            <form
+              onSubmit={storeCreateForm.onSubmit(
+                (values) => {
+                  doCreateStore.mutate({
+                    name: values.name,
+                    location: values.location,
+                    storeChainId: selectedStoreChain,
+                  });
+
+                  storeCreateForm.reset();
+                  closeStoreCreate();
+                },
+                (validationErrors, values, event) => {
+                  console.log(
+                    validationErrors, // <- form.errors at the moment of submit
+                    values, // <- form.getValues() at the moment of submit
+                    event, // <- form element submit event
+                  );
+                },
+              )}
+            >
+              <Flex direction="column" gap="md">
+                <TextInput
+                  data-autofocus
+                  withAsterisk
+                  label="Name"
+                  placeholder="Store Name"
+                  key={storeCreateForm.key("name")}
+                  {...storeCreateForm.getInputProps("name")}
+                />
+
+                <TextInput
+                  withAsterisk
+                  label="Location"
+                  placeholder="Store Location"
+                  key={storeCreateForm.key("location")}
+                  {...storeCreateForm.getInputProps("location")}
+                />
+
+                <Group justify="flex-end" mt="md">
+                  <Button type="submit">Submit</Button>
+                </Group>
+              </Flex>
+            </form>
+          </Flex>
+        </Modal>
       </Modal.Stack>
     </>
   );

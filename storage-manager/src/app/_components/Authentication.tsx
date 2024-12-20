@@ -140,7 +140,11 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
       {session.status === "authenticated" ? (
         <Flex align="center" justify="space-between">
           <Title order={4}>You are already authenticated</Title>
-          <Button variant="outline" color="red" onClick={() => signOut()}>
+          <Button
+            variant="outline"
+            color="red"
+            onClick={() => void signOut({ redirectTo: "/" })}
+          >
             Logout
           </Button>
         </Flex>
