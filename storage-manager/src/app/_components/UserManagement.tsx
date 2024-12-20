@@ -19,7 +19,6 @@ import {
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
-import { useSession } from "next-auth/react";
 
 const roleColors: Record<string, string> = {
   SUPER_ADMIN: "blue",
@@ -28,8 +27,6 @@ const roleColors: Record<string, string> = {
 };
 
 export const UserManagement: React.FC = () => {
-  const session = useSession();
-  console.log(session);
   const [opened, { open, close }] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
@@ -104,7 +101,7 @@ export const UserManagement: React.FC = () => {
     </Table.Tr>
   ));
 
-  return session.status === "authenticated" ? (
+  return (
     <>
       <div className="flex-col">
         <div className="flex justify-end">
@@ -208,7 +205,5 @@ export const UserManagement: React.FC = () => {
         </Flex>
       </Modal>
     </>
-  ) : (
-    <Text>Please sign in to view this page</Text>
   );
 };

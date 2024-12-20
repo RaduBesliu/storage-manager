@@ -1,14 +1,13 @@
 import { z } from "zod";
-
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const storeRouter = createTRPCRouter({
-  get: publicProcedure.query(async ({ ctx }) => {
+  get: protectedProcedure.query(async ({ ctx }) => {
     const stores = await ctx.db.store.findMany();
     return stores;
   }),
 
-  getByStoreChainId: publicProcedure
+  getByStoreChainId: protectedProcedure
     .input(z.object({ storeChainId: z.number() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.store.findMany({
@@ -18,7 +17,7 @@ export const storeRouter = createTRPCRouter({
       });
     }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -32,11 +31,12 @@ export const storeRouter = createTRPCRouter({
           name: input.name,
           location: input.location,
           storeChainId: input.storeChainId,
+          createdById: ctx.session.user.id,
         },
       });
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.store.delete({
