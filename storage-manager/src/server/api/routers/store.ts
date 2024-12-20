@@ -32,6 +32,7 @@ export const storeRouter = createTRPCRouter({
           name: input.name,
           location: input.location,
           storeChainId: input.storeChainId,
+          
         },
       });
     }),

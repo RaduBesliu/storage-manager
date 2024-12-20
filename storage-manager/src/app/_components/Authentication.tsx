@@ -22,6 +22,7 @@ import { z } from "zod";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
 import { signIn, signOut, useSession } from "next-auth/react";
+import Navbar from "./Navbar";
 
 type AuthenticationFormProps = {
   onClose: () => void;
@@ -261,6 +262,7 @@ export const Authentication: React.FC = () => {
       <Button color="white" variant="subtle" size="6rem" onClick={open}>
         <Title size="4rem">Storage Manager</Title>
       </Button>
+      
     </>
   );
 };

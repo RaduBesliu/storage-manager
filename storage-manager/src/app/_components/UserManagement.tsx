@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
+import Navbar from "../_components/Navbar";
 import {
   ActionIcon,
   Anchor,
@@ -29,10 +30,11 @@ const roleColors: Record<string, string> = {
 
 export const UserManagement: React.FC = () => {
   const session = useSession();
-  console.log(session);
   const [opened, { open, close }] = useDisclosure(false);
+  const [editingUser, setEditingUser] = useState<any>(null); // Pentru utilizatorul selectat
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
+
   const doCreateUser = api.user.create.useMutation({
     onSuccess: async () => {
       await utils.user.get.invalidate();
@@ -41,6 +43,16 @@ export const UserManagement: React.FC = () => {
       console.error(error);
     },
   });
+
+  const doUpdateUser = api.user.update.useMutation({
+    onSuccess: async () => {
+      await utils.user.get.invalidate();
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+
   const doDeleteUser = api.user.delete.useMutation({
     onSuccess: async () => {
       await utils.user.get.invalidate();
@@ -50,8 +62,7 @@ export const UserManagement: React.FC = () => {
     },
   });
 
-  const createForm = useForm({
-    mode: "uncontrolled",
+  const form = useForm({
     initialValues: {
       name: "",
       email: "",
@@ -61,9 +72,37 @@ export const UserManagement: React.FC = () => {
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
       email: (value) => (value.length > 0 ? null : "Email is required"),
-      password: (value) => (value.length > 0 ? null : "Password is required"),
+      password: (value) =>
+        !editingUser && value.length === 0 ? "Password is required" : null,
     },
   });
+
+  const handleEdit = (user: any) => {
+    setEditingUser(user); // Setează utilizatorul care este editat
+    form.setValues({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      password: "", // Parola rămâne goală, nu trebuie reinițializată
+    });
+    open(); // Deschide modalul
+  };
+
+  const handleSubmit = (values: any) => {
+    if (editingUser) {
+      // Actualizare utilizator
+      doUpdateUser.mutate({
+        id: editingUser.id, // ID-ul utilizatorului editat
+        ...values,
+      });
+    } else {
+      // Creare utilizator nou
+      doCreateUser.mutate(values);
+    }
+    form.reset();
+    setEditingUser(null);
+    close();
+  };
 
   const rows = users?.map((user) => (
     <Table.Tr key={user.id}>
@@ -87,7 +126,11 @@ export const UserManagement: React.FC = () => {
       </Table.Td>
       <Table.Td>
         <Group gap={0} justify="flex-end">
-          <ActionIcon variant="subtle" color="gray">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => handleEdit(user)} // Apel pentru editare
+          >
             <IconPencil size={16} stroke={1.5} />
           </ActionIcon>
           <ActionIcon
@@ -106,9 +149,20 @@ export const UserManagement: React.FC = () => {
 
   return session.status === "authenticated" ? (
     <>
+      <div className="w-60 bg-gray-100">
+        <Navbar />
+      </div>
       <div className="flex-col">
         <div className="flex justify-end">
-          <Button variant="subtle" color="blue" onClick={open}>
+          <Button
+            variant="subtle"
+            color="blue"
+            onClick={() => {
+              setEditingUser(null); 
+              form.reset();
+              open();
+            }}
+          >
             <div className="flex items-center gap-1">
               <Text fz="sm" fw={500}>
                 Create User
@@ -134,34 +188,21 @@ export const UserManagement: React.FC = () => {
       <Modal
         opened={opened}
         onClose={() => {
-          createForm.reset();
+          form.reset();
+          setEditingUser(null);
           close();
         }}
-        title="Create User"
+        title={editingUser ? "Edit User" : "Create User"}
         size="md"
         centered
       >
         <Flex direction="column">
           <form
-            onSubmit={createForm.onSubmit(
-              (values) => {
-                doCreateUser.mutate({
-                  name: values.name,
-                  email: values.email,
-                  role: values.role,
-                  password: values.password,
-                });
-
-                createForm.reset();
-                close();
-              },
+            onSubmit={form.onSubmit(
+              (values) => handleSubmit(values),
               (validationErrors, values, event) => {
-                console.log(
-                  validationErrors, // <- form.errors at the moment of submit
-                  values, // <- form.getValues() at the moment of submit
-                  event, // <- form element submit event
-                );
-              },
+                console.log(validationErrors, values, event);
+              }
             )}
           >
             <Flex direction="column" gap="md">
@@ -169,39 +210,37 @@ export const UserManagement: React.FC = () => {
                 withAsterisk
                 label="Name"
                 placeholder="John Doe"
-                key={createForm.key("name")}
-                {...createForm.getInputProps("name")}
+                {...form.getInputProps("name")}
               />
 
               <TextInput
                 withAsterisk
                 label="Email"
                 placeholder="yours@gmail.com"
-                key={createForm.key("email")}
-                {...createForm.getInputProps("email")}
+                {...form.getInputProps("email")}
               />
 
-              <TextInput
-                withAsterisk
-                label="Password"
-                placeholder="********"
-                key={createForm.key("password")}
-                {...createForm.getInputProps("password")}
-              />
+              {!editingUser && (
+                <TextInput
+                  withAsterisk
+                  label="Password"
+                  placeholder="********"
+                  {...form.getInputProps("password")}
+                />
+              )}
 
               <NativeSelect
                 label="Role"
-                key={createForm.key("role")}
                 data={[
                   { value: Role.STORE_EMPLOYEE, label: "Store Employee" },
                   { value: Role.STORE_ADMIN, label: "Store Admin" },
                   { value: Role.SUPER_ADMIN, label: "Super Admin" },
                 ]}
-                {...createForm.getInputProps("role")}
+                {...form.getInputProps("role")}
               />
 
               <Group justify="flex-end" mt="md">
-                <Button type="submit">Submit</Button>
+                <Button type="submit">{editingUser ? "Update" : "Submit"}</Button>
               </Group>
             </Flex>
           </form>
