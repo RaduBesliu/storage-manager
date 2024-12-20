@@ -22,7 +22,6 @@ import { z } from "zod";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 type AuthenticationFormProps = {
   onClose: () => void;
@@ -31,7 +30,6 @@ type AuthenticationFormProps = {
 export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
   onClose,
 }) => {
-  const router = useRouter();
   const session = useSession();
   const [formType, setFormType] = useState<"register" | "login">("register");
   const [loading, setLoading] = useState(false);
@@ -122,18 +120,11 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
     } else {
       void (async () => {
         try {
-          const result = await signIn("credentials", {
+          await signIn("credentials", {
             email: values.email,
             password: values.password,
-            redirect: false,
+            redirectTo: "/",
           });
-
-          if (result?.error) {
-            console.error(result.error);
-          } else {
-            console.log("Logged in");
-            router.push("/");
-          }
         } catch (error) {
           console.error(error);
         }
