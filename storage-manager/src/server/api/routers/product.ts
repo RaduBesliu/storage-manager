@@ -10,7 +10,7 @@ export const productRouter = createTRPCRouter({
   getByStoreId: protectedProcedure
     .input(z.object({ storeId: z.number() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.product.findMany({
+      return await ctx.db.product.findMany({
         where: {
           storeId: input.storeId,
         },
@@ -29,7 +29,7 @@ export const productRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.product.create({
+      return await ctx.db.product.create({
         data: {
           name: input.name,
           category: input.category,
@@ -54,7 +54,7 @@ export const productRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.product.update({
+      return await ctx.db.product.update({
         where: {
           id: input.id,
         },
@@ -72,7 +72,7 @@ export const productRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.product.delete({
+      return await ctx.db.product.delete({
         where: {
           id: input.id,
         },

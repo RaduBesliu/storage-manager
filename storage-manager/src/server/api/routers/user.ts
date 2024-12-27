@@ -13,7 +13,7 @@ export const userRouter = createTRPCRouter({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.user.findUnique({
+      return await ctx.db.user.findUnique({
         where: {
           id: input.id,
         },
@@ -32,7 +32,7 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const hashedPassword = bcrypt.hashSync(input.password, 10);
 
-      return ctx.db.user.create({
+      return await ctx.db.user.create({
         data: {
           name: input.name,
           email: input.email,
@@ -48,16 +48,18 @@ export const userRouter = createTRPCRouter({
         id: z.string(),
         name: z.string(),
         email: z.string().min(1),
+        role: z.custom<Role>(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.user.update({
+      return await ctx.db.user.update({
         where: {
           id: input.id,
         },
         data: {
           name: input.name,
           email: input.email,
+          role: input.role,
         },
       });
     }),
@@ -65,7 +67,7 @@ export const userRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.user.delete({
+      return await ctx.db.user.delete({
         where: {
           id: input.id,
         },

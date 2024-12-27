@@ -111,7 +111,11 @@ export const ProductsManagement: React.FC = () => {
       <Table.Td>
         <Text c="lime.6">{product.quantity}</Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td
+        classNames={{
+          td: "flex justify-end",
+        }}
+      >
         <Group gap={0} justify="flex-end">
           <ActionIcon
             variant="subtle"
@@ -159,7 +163,12 @@ export const ProductsManagement: React.FC = () => {
           </Button>
         </div>
         <Table.ScrollContainer minWidth={800}>
-          <Table verticalSpacing="md" className="text-white">
+          <Table
+            highlightOnHover
+            highlightOnHoverColor="#fcc41940"
+            verticalSpacing="md"
+            className="text-white"
+          >
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Name</Table.Th>

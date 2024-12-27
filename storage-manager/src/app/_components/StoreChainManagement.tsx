@@ -20,24 +20,42 @@ import { api } from "~/trpc/react";
 
 export const StoreChainManagement: React.FC = () => {
   const [selectedStoreChain, setSelectedStoreChain] = useState(0);
+  const [selectedStore, setSelectedStore] = useState(0);
   const [createOpened, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
+  const [editOpened, { open: openEdit, close: closeEdit }] =
+    useDisclosure(false);
+
   const [storeModalOpened, { open: openStoreModal, close: closeStoreModal }] =
     useDisclosure(false);
   const [
     storeCreateOpened,
     { open: openStoreCreate, close: closeStoreCreate },
   ] = useDisclosure(false);
+  const [storeEditOpened, { open: openStoreEdit, close: closeStoreEdit }] =
+    useDisclosure(false);
+
   const modalStack = useModalsStack([
     "store-manager-page",
     "create-store-page",
+    "edit-store-page",
   ]);
+
   const utils = api.useUtils();
   const { data: storeChains } = api.storeChain.get.useQuery();
   const { data: stores } = api.store.getByStoreChainId.useQuery({
     storeChainId: selectedStoreChain,
   });
+
   const doCreateStoreChain = api.storeChain.create.useMutation({
+    onSuccess: async () => {
+      await utils.storeChain.get.invalidate();
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+  const doEditStoreChain = api.storeChain.update.useMutation({
     onSuccess: async () => {
       await utils.storeChain.get.invalidate();
     },
@@ -62,6 +80,14 @@ export const StoreChainManagement: React.FC = () => {
       console.error(error);
     },
   });
+  const doEditStore = api.store.update.useMutation({
+    onSuccess: async () => {
+      await utils.store.getByStoreChainId.invalidate();
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
   const doDeleteStore = api.store.delete.useMutation({
     onSuccess: async () => {
       await utils.store.getByStoreChainId.invalidate();
@@ -72,6 +98,18 @@ export const StoreChainManagement: React.FC = () => {
   });
 
   const createForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      name: "",
+      location: "",
+    },
+    validate: {
+      name: (value) => (value.length > 0 ? null : "Name is required"),
+      location: (value) => (value.length > 0 ? null : "Location is required"),
+    },
+  });
+
+  const editForm = useForm({
     mode: "uncontrolled",
     initialValues: {
       name: "",
@@ -105,9 +143,24 @@ export const StoreChainManagement: React.FC = () => {
           {storeChain.location}
         </Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td
+        classNames={{
+          td: "flex justify-end",
+        }}
+      >
         <Group gap={0} justify="flex-end">
-          <ActionIcon variant="subtle" color="gray">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => {
+              setSelectedStoreChain(storeChain.id);
+              editForm.setValues({
+                name: storeChain.name,
+                location: storeChain.location,
+              });
+              openEdit();
+            }}
+          >
             <IconPencil size={16} stroke={1.5} />
           </ActionIcon>
           <ActionIcon
@@ -141,9 +194,24 @@ export const StoreChainManagement: React.FC = () => {
           {store.location}
         </Text>
       </Table.Td>
-      <Table.Td>
+      <Table.Td
+        classNames={{
+          td: "flex justify-end",
+        }}
+      >
         <Group gap={0} justify="flex-end">
-          <ActionIcon variant="subtle" color="gray">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => {
+              setSelectedStore(store.id);
+              storeEditForm.setValues({
+                name: store.name,
+                location: store.location,
+              });
+              openStoreEdit();
+            }}
+          >
             <IconPencil size={16} stroke={1.5} />
           </ActionIcon>
           <ActionIcon
@@ -172,6 +240,18 @@ export const StoreChainManagement: React.FC = () => {
     },
   });
 
+  const storeEditForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      name: "",
+      location: "",
+    },
+    validate: {
+      name: (value) => (value.length > 0 ? null : "Name is required"),
+      location: (value) => (value.length > 0 ? null : "Location is required"),
+    },
+  });
+
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -186,7 +266,12 @@ export const StoreChainManagement: React.FC = () => {
           </Button>
         </div>
         <Table.ScrollContainer minWidth={800}>
-          <Table verticalSpacing="md" className="text-white">
+          <Table
+            highlightOnHover
+            highlightOnHoverColor="#fcc41940"
+            verticalSpacing="md"
+            className="text-white"
+          >
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Name</Table.Th>
@@ -232,7 +317,9 @@ export const StoreChainManagement: React.FC = () => {
           >
             <Flex direction="column" gap="md">
               <TextInput
+                data-autofocus
                 withAsterisk
+                required
                 label="Name"
                 placeholder="Store Chain Name"
                 key={createForm.key("name")}
@@ -241,10 +328,71 @@ export const StoreChainManagement: React.FC = () => {
 
               <TextInput
                 withAsterisk
+                required
                 label="Location"
                 placeholder="Store Chain Location"
                 key={createForm.key("location")}
                 {...createForm.getInputProps("location")}
+              />
+
+              <Group justify="flex-end" mt="md">
+                <Button type="submit">Submit</Button>
+              </Group>
+            </Flex>
+          </form>
+        </Flex>
+      </Modal>
+
+      <Modal
+        opened={editOpened}
+        onClose={() => {
+          editForm.reset();
+          closeEdit();
+        }}
+        title="Edit Store Chain"
+        size="md"
+        centered
+      >
+        <Flex direction="column">
+          <form
+            onSubmit={editForm.onSubmit(
+              (values) => {
+                doEditStoreChain.mutate({
+                  id: selectedStoreChain,
+                  name: values.name,
+                  location: values.location,
+                });
+
+                editForm.reset();
+                closeEdit();
+              },
+              (validationErrors, values, event) => {
+                console.log(
+                  validationErrors, // <- form.errors at the moment of submit
+                  values, // <- form.getValues() at the moment of submit
+                  event, // <- form element submit event
+                );
+              },
+            )}
+          >
+            <Flex direction="column" gap="md">
+              <TextInput
+                data-autofocus
+                withAsterisk
+                required
+                label="Name"
+                placeholder="Store Chain Name"
+                key={editForm.key("name")}
+                {...editForm.getInputProps("name")}
+              />
+
+              <TextInput
+                withAsterisk
+                required
+                label="Location"
+                placeholder="Store Chain Location"
+                key={editForm.key("location")}
+                {...editForm.getInputProps("location")}
               />
 
               <Group justify="flex-end" mt="md">
@@ -280,7 +428,7 @@ export const StoreChainManagement: React.FC = () => {
             </Button>
           </div>
           <Table.ScrollContainer minWidth={800}>
-            <Table verticalSpacing="md">
+            <Table highlightOnHover verticalSpacing="md">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Name</Table.Th>
@@ -334,6 +482,7 @@ export const StoreChainManagement: React.FC = () => {
                 <TextInput
                   data-autofocus
                   withAsterisk
+                  required
                   label="Name"
                   placeholder="Store Name"
                   key={storeCreateForm.key("name")}
@@ -342,10 +491,76 @@ export const StoreChainManagement: React.FC = () => {
 
                 <TextInput
                   withAsterisk
+                  required
                   label="Location"
                   placeholder="Store Location"
                   key={storeCreateForm.key("location")}
                   {...storeCreateForm.getInputProps("location")}
+                />
+
+                <Group justify="flex-end" mt="md">
+                  <Button type="submit">Submit</Button>
+                </Group>
+              </Flex>
+            </form>
+          </Flex>
+        </Modal>
+
+        <Modal
+          {...modalStack.register("edit-store-page")}
+          opened={storeEditOpened}
+          onClose={() => {
+            storeEditForm.reset();
+            closeStoreEdit();
+          }}
+          title="Edit Store"
+          size="lg"
+          centered
+          overlayProps={{
+            backgroundOpacity: 0.45,
+            blur: 5,
+          }}
+        >
+          <Flex direction="column">
+            <form
+              onSubmit={storeEditForm.onSubmit(
+                (values) => {
+                  doEditStore.mutate({
+                    id: selectedStore,
+                    name: values.name,
+                    location: values.location,
+                  });
+
+                  storeEditForm.reset();
+                  closeStoreEdit();
+                },
+                (validationErrors, values, event) => {
+                  console.log(
+                    validationErrors, // <- form.errors at the moment of submit
+                    values, // <- form.getValues() at the moment of submit
+                    event, // <- form element submit event
+                  );
+                },
+              )}
+            >
+              <Flex direction="column" gap="md">
+                <TextInput
+                  data-autofocus
+                  withAsterisk
+                  required
+                  label="Name"
+                  placeholder="Store Name"
+                  key={storeEditForm.key("name")}
+                  {...storeEditForm.getInputProps("name")}
+                />
+
+                <TextInput
+                  withAsterisk
+                  required
+                  label="Location"
+                  placeholder="Store Location"
+                  key={storeEditForm.key("location")}
+                  {...storeEditForm.getInputProps("location")}
                 />
 
                 <Group justify="flex-end" mt="md">

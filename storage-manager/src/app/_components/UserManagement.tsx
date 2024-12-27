@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -27,10 +27,21 @@ const roleColors: Record<string, string> = {
 };
 
 export const UserManagement: React.FC = () => {
+  const [selectedUser, setSelectedUser] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
+  const [updateOpened, { open: openUpdate, close: closeUpdate }] =
+    useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
   const doCreateUser = api.user.create.useMutation({
+    onSuccess: async () => {
+      await utils.user.get.invalidate();
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
+  const doUpdateUser = api.user.update.useMutation({
     onSuccess: async () => {
       await utils.user.get.invalidate();
     },
@@ -62,6 +73,19 @@ export const UserManagement: React.FC = () => {
     },
   });
 
+  const updateForm = useForm({
+    mode: "uncontrolled",
+    initialValues: {
+      name: "",
+      email: "",
+      role: Role.STORE_EMPLOYEE as Role,
+    },
+    validate: {
+      name: (value) => (value.length > 0 ? null : "Name is required"),
+      email: (value) => (value.length > 0 ? null : "Email is required"),
+    },
+  });
+
   const rows = users?.map((user) => (
     <Table.Tr key={user.id}>
       <Table.Td>
@@ -82,9 +106,25 @@ export const UserManagement: React.FC = () => {
           {user.email}
         </Anchor>
       </Table.Td>
-      <Table.Td>
+      <Table.Td
+        classNames={{
+          td: "flex justify-end",
+        }}
+      >
         <Group gap={0} justify="flex-end">
-          <ActionIcon variant="subtle" color="gray">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => {
+              setSelectedUser(user.id);
+              updateForm.setValues({
+                name: user.name ?? "",
+                email: user.email,
+                role: user.role,
+              });
+              openUpdate();
+            }}
+          >
             <IconPencil size={16} stroke={1.5} />
           </ActionIcon>
           <ActionIcon
@@ -115,7 +155,12 @@ export const UserManagement: React.FC = () => {
           </Button>
         </div>
         <Table.ScrollContainer minWidth={800}>
-          <Table verticalSpacing="md" className="text-white">
+          <Table
+            highlightOnHover
+            highlightOnHoverColor="#fcc41940"
+            verticalSpacing="md"
+            className="text-white"
+          >
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Employee</Table.Th>
@@ -165,6 +210,7 @@ export const UserManagement: React.FC = () => {
               <TextInput
                 data-autofocus
                 withAsterisk
+                required
                 label="Name"
                 placeholder="John Doe"
                 key={createForm.key("name")}
@@ -173,6 +219,7 @@ export const UserManagement: React.FC = () => {
 
               <TextInput
                 withAsterisk
+                required
                 label="Email"
                 placeholder="yours@gmail.com"
                 key={createForm.key("email")}
@@ -181,6 +228,7 @@ export const UserManagement: React.FC = () => {
 
               <TextInput
                 withAsterisk
+                required
                 label="Password"
                 placeholder="********"
                 key={createForm.key("password")}
@@ -196,6 +244,78 @@ export const UserManagement: React.FC = () => {
                   { value: Role.SUPER_ADMIN, label: "Super Admin" },
                 ]}
                 {...createForm.getInputProps("role")}
+              />
+
+              <Group justify="flex-end" mt="md">
+                <Button type="submit">Submit</Button>
+              </Group>
+            </Flex>
+          </form>
+        </Flex>
+      </Modal>
+
+      <Modal
+        opened={updateOpened}
+        onClose={() => {
+          updateForm.reset();
+          closeUpdate();
+        }}
+        title="Update User"
+        size="md"
+        centered
+      >
+        <Flex direction="column">
+          <form
+            onSubmit={updateForm.onSubmit(
+              (values) => {
+                doUpdateUser.mutate({
+                  id: selectedUser,
+                  name: values.name,
+                  email: values.email,
+                  role: values.role,
+                });
+
+                updateForm.reset();
+                closeUpdate();
+              },
+              (validationErrors, values, event) => {
+                console.log(
+                  validationErrors, // <- form.errors at the moment of submit
+                  values, // <- form.getValues() at the moment of submit
+                  event, // <- form element submit event
+                );
+              },
+            )}
+          >
+            <Flex direction="column" gap="md">
+              <TextInput
+                data-autofocus
+                withAsterisk
+                required
+                label="Name"
+                placeholder="John Doe"
+                key={updateForm.key("name")}
+                {...updateForm.getInputProps("name")}
+              />
+
+              <TextInput
+                withAsterisk
+                required
+                label="Email"
+                placeholder="yours@gmail.com"
+                key={updateForm.key("email")}
+                {...updateForm.getInputProps("email")}
+              />
+
+              <NativeSelect
+                label="Role"
+                key={updateForm.key("role")}
+                data={[
+                  { value: Role.STORE_EMPLOYEE, label: "Store Employee" },
+                  { value: Role.STORE_ADMIN, label: "Store Admin" },
+                  { value: Role.SUPER_ADMIN, label: "Super Admin" },
+                ]}
+                {...updateForm.getInputProps("role")}
               />
 
               <Group justify="flex-end" mt="md">

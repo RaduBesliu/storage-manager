@@ -19,10 +19,30 @@ export const storeChainRouter = createTRPCRouter({
       });
     }),
 
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1),
+        location: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.storeChain.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          location: input.location,
+        },
+      });
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.storeChain.delete({
+      return await ctx.db.storeChain.delete({
         where: {
           id: input.id,
         },
