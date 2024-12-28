@@ -9,6 +9,7 @@ import {
   Flex,
   Group,
   Modal,
+  ScrollArea,
   Table,
   Text,
   TextInput,
@@ -131,7 +132,7 @@ export const StoreChainManagement: React.FC = () => {
               openStoreModal();
             }}
           >
-            <Text fz="sm" fw={500}>
+            <Text fz="sm" fw={500} c="teal.3">
               {storeChain.name}
             </Text>
           </UnstyledButton>
@@ -139,7 +140,7 @@ export const StoreChainManagement: React.FC = () => {
       </Table.Td>
 
       <Table.Td>
-        <Text fz="sm" fw={500}>
+        <Text fz="sm" fw={500} c="blue.3">
           {storeChain.location}
         </Text>
       </Table.Td>
@@ -180,13 +181,9 @@ export const StoreChainManagement: React.FC = () => {
   const storeRows = stores?.map((store) => (
     <Table.Tr key={store.id}>
       <Table.Td>
-        <Group gap="sm">
-          <UnstyledButton onClick={openStoreModal}>
-            <Text fz="sm" fw={500}>
-              {store.name}
-            </Text>
-          </UnstyledButton>
-        </Group>
+        <Text fz="sm" fw={500}>
+          {store.name}
+        </Text>
       </Table.Td>
 
       <Table.Td>
@@ -254,7 +251,7 @@ export const StoreChainManagement: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-2">
+      <div className="flex h-screen flex-col gap-2 py-10">
         <div className="flex justify-end">
           <Button variant="subtle" color="teal" onClick={openCreate}>
             <div className="flex items-center gap-1">
@@ -265,23 +262,25 @@ export const StoreChainManagement: React.FC = () => {
             </div>
           </Button>
         </div>
-        <Table.ScrollContainer minWidth={800}>
-          <Table
-            highlightOnHover
-            highlightOnHoverColor="#fcc41940"
-            verticalSpacing="md"
-            className="text-white"
-          >
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Location</Table.Th>
-                <Table.Th />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>{storeChainRows}</Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
+        <ScrollArea style={{ flex: 1, overflow: "auto" }}>
+          <Table.ScrollContainer minWidth={800}>
+            <Table
+              highlightOnHover
+              highlightOnHoverColor="#fcc41940"
+              verticalSpacing="md"
+              className="text-white"
+            >
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th>Location</Table.Th>
+                  <Table.Th />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{storeChainRows}</Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </ScrollArea>
       </div>
 
       <Modal
@@ -427,18 +426,20 @@ export const StoreChainManagement: React.FC = () => {
               </div>
             </Button>
           </div>
-          <Table.ScrollContainer minWidth={800}>
-            <Table highlightOnHover verticalSpacing="md">
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Location</Table.Th>
-                  <Table.Th />
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>{storeRows}</Table.Tbody>
-            </Table>
-          </Table.ScrollContainer>
+          <ScrollArea style={{ flex: 1, overflow: "auto" }}>
+            <Table.ScrollContainer minWidth={800}>
+              <Table highlightOnHover verticalSpacing="md">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>Location</Table.Th>
+                    <Table.Th />
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>{storeRows}</Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
+          </ScrollArea>
         </Modal>
 
         <Modal

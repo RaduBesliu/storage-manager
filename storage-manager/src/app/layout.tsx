@@ -1,4 +1,5 @@
 import "~/styles/globals.css";
+import "~/styles/preflight.css";
 import "@mantine/core/styles.css";
 // import "@mantine/form/styles.css";
 
@@ -9,6 +10,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { auth } from "~/server/auth";
 import SessionProvider from "./_components/SessionProvider";
 import { NavBar } from "./_components/NavBar/NavBar";
+import theme from "~/styles/MantineTheme";
 
 export const metadata: Metadata = {
   title: "Storage Manager",
@@ -32,11 +34,7 @@ export default async function RootLayout({
       </head>
       <body>
         <TRPCReactProvider>
-          <MantineProvider
-            theme={{
-              primaryColor: "teal",
-            }}
-          >
+          <MantineProvider theme={theme}>
             <SessionProvider session={session}>
               <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#333333] to-[#dd1818]">
                 <div className="flex min-h-screen">

@@ -12,6 +12,7 @@ import {
   Group,
   Modal,
   NativeSelect,
+  ScrollArea,
   Table,
   Text,
   TextInput,
@@ -143,7 +144,7 @@ export const UserManagement: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-2">
+      <div className="flex h-screen flex-col gap-2 py-10">
         <div className="flex justify-end">
           <Button variant="subtle" color="teal" onClick={open}>
             <div className="flex items-center gap-1">
@@ -154,23 +155,25 @@ export const UserManagement: React.FC = () => {
             </div>
           </Button>
         </div>
-        <Table.ScrollContainer minWidth={800}>
-          <Table
-            highlightOnHover
-            highlightOnHoverColor="#fcc41940"
-            verticalSpacing="md"
-            className="text-white"
-          >
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Employee</Table.Th>
-                <Table.Th>Role</Table.Th>
-                <Table.Th>Email</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>{rows}</Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
+        <ScrollArea style={{ flex: 1, overflow: "auto" }}>
+          <Table.ScrollContainer minWidth={800}>
+            <Table
+              highlightOnHover
+              highlightOnHoverColor="#fcc41940"
+              verticalSpacing="md"
+              className="text-white"
+            >
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Employee</Table.Th>
+                  <Table.Th>Role</Table.Th>
+                  <Table.Th>Email</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{rows}</Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+        </ScrollArea>
       </div>
 
       <Modal
