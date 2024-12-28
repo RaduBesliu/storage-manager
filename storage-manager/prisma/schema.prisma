@@ -90,7 +90,7 @@ model Store {
     updatedAt    DateTime    @updatedAt
     createdBy    User        @relation(fields: [createdById], references: [id])
     createdById  String
-    StoreChain   StoreChain? @relation(fields: [storeChainId], references: [id])
+    StoreChain   StoreChain? @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
     storeChainId Int?
     Product      Product[]
 }
@@ -104,6 +104,6 @@ model Product {
     quantity    Int
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
-    Store       Store    @relation(fields: [storeId], references: [id])
+    Store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
     storeId     Int
 }
