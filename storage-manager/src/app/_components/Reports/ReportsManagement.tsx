@@ -31,6 +31,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
   // Product, Store, Store Chain
 
   const session = useSession();
+  const [eventWasSelected, setEventWasSelected] = useState(false);
 
   const [filters, setFilters] = useState<ReportFilters>({
     eventType: Event.SALE,
@@ -56,7 +57,10 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
             value: event as string,
           })) ?? []
         }
-        onSubmit={(val) => setFilters({ ...filters, eventType: val as Event })}
+        onSubmit={(val) => {
+          setEventWasSelected(true);
+          setFilters({ ...filters, eventType: val as Event });
+        }}
         placeholder="Search Event Type"
       />
       <DatePickerInput
@@ -100,10 +104,16 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                     ?.map((store) => ({
                       key: store.id.toString(),
                       value: store.name,
+                      storeChainName: storeChains?.find(
+                        (chain) => chain.id === store.storeChainId,
+                      )?.name,
                     }))
                 : stores?.map((store) => ({
                     key: store.id.toString(),
                     value: store.name,
+                    storeChainName: storeChains?.find(
+                      (chain) => chain.id === store.storeChainId,
+                    )?.name,
                   }))) ?? []
             }
             onSubmit={(val) =>
@@ -122,10 +132,16 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                     ?.map((product) => ({
                       key: product.id.toString(),
                       value: product.name,
+                      storeName: stores?.find(
+                        (store) => store.id === product.storeId,
+                      )?.name,
                     }))
                 : products?.map((product) => ({
                     key: product.id.toString(),
                     value: product.name,
+                    storeName: stores?.find(
+                      (store) => store.id === product.storeId,
+                    )?.name,
                   }))) ?? []
             }
             onSubmit={(val) =>
@@ -144,6 +160,9 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
               stores?.map((store) => ({
                 key: store.id.toString(),
                 value: store.name,
+                storeChainName: storeChains?.find(
+                  (chain) => chain.id === store.storeChainId,
+                )?.name,
               })) ?? []
             }
             onSubmit={(val) =>
@@ -162,10 +181,16 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                     ?.map((product) => ({
                       key: product.id.toString(),
                       value: product.name,
+                      storeName: stores?.find(
+                        (store) => store.id === product.storeId,
+                      )?.name,
                     }))
                 : products?.map((product) => ({
                     key: product.id.toString(),
                     value: product.name,
+                    storeName: stores?.find(
+                      (store) => store.id === product.storeId,
+                    )?.name,
                   }))) ?? []
             }
             onSubmit={(val) =>
@@ -180,8 +205,13 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
       )}
       <Button
         color="teal"
+        disabled={
+          !eventWasSelected ||
+          filters.productId === null ||
+          filters.storeId === null ||
+          filters.eventType === null
+        }
         onClick={() => {
-          console.log("GENERATE", filters);
           onGenerate(filters, {
             eventType: filters.eventType,
             dateRange: {
@@ -272,54 +302,84 @@ export const ReportsManagement: React.FC = () => {
           </Flex>
         }
       >
-        {saleIsLoading ? (
-          <LoadingOverlay
-            visible={true}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-          />
-        ) : saleReport ? (
-          renderSaleReport(saleReport)
+        {displayFilters?.eventType === Event.SALE ? (
+          saleIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : saleReport && saleReport.length > 0 ? (
+            renderSaleReport(saleReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No adjustments found for selected range.
+            </div>
+          )
         ) : null}
 
-        {restockIsLoading ? (
-          <LoadingOverlay
-            visible={true}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-          />
-        ) : restockReport ? (
-          renderRestockReport(restockReport)
+        {displayFilters?.eventType === Event.RESTOCK ? (
+          restockIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : restockReport && restockReport.length > 0 ? (
+            renderRestockReport(restockReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No adjustments found for selected range.
+            </div>
+          )
         ) : null}
 
-        {returnIsLoading ? (
-          <LoadingOverlay
-            visible={true}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-          />
-        ) : returnReport ? (
-          renderReturnReport(returnReport)
+        {displayFilters?.eventType === Event.RETURN ? (
+          returnIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : returnReport && returnReport.length > 0 ? (
+            renderReturnReport(returnReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No adjustments found for selected range.
+            </div>
+          )
         ) : null}
 
-        {priceChangeIsLoading ? (
-          <LoadingOverlay
-            visible={true}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-          />
-        ) : priceChangeReport ? (
-          renderPriceChangeReport(priceChangeReport)
+        {displayFilters?.eventType === Event.PRICE_CHANGE ? (
+          priceChangeIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : priceChangeReport && priceChangeReport.length > 0 ? (
+            renderPriceChangeReport(priceChangeReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No adjustments found for selected range.
+            </div>
+          )
         ) : null}
 
-        {adjustmentIsLoading ? (
-          <LoadingOverlay
-            visible={true}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-          />
-        ) : adjustmentReport ? (
-          renderAdjustmentReport(adjustmentReport)
+        {displayFilters?.eventType === Event.ADJUSTMENT ? (
+          adjustmentIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : adjustmentReport && adjustmentReport.length > 0 ? (
+            renderAdjustmentReport(adjustmentReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No adjustments found for selected range.
+            </div>
+          )
         ) : null}
       </Modal>
     </div>

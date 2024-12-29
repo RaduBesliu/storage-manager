@@ -1,14 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Combobox, InputBase, useCombobox } from "@mantine/core";
+import {
+  Combobox,
+  Group,
+  InputBase,
+  ScrollArea,
+  useCombobox,
+  Text,
+} from "@mantine/core";
 
 export const SearchableSelect = ({
   data,
   placeholder,
   onSubmit,
 }: {
-  data: { key: string; value: string }[];
+  data: {
+    key: string;
+    value: string;
+    storeName?: string;
+    storeChainName?: string;
+  }[];
   placeholder?: string;
   onSubmit: (key: string) => void; // Adjusted to submit the key
 }) => {
@@ -26,7 +38,23 @@ export const SearchableSelect = ({
   // Render options
   const options = filteredOptions.map((item) => (
     <Combobox.Option key={item.key} value={item.key}>
-      {item.value}
+      <Group>
+        <div>
+          <Text fz="sm" fw={500}>
+            {item.value}
+          </Text>
+          {item.storeName ? (
+            <Text fz="xs" opacity={0.6}>
+              {item.storeName}
+            </Text>
+          ) : null}
+          {item.storeChainName ? (
+            <Text fz="xs" opacity={0.6}>
+              {item.storeChainName}
+            </Text>
+          ) : null}
+        </div>
+      </Group>
     </Combobox.Option>
   ));
 
@@ -66,15 +94,13 @@ export const SearchableSelect = ({
 
       <Combobox.Dropdown>
         <Combobox.Options>
-          {options.length > 0 ? (
-            options.length > 16 ? (
-              options.slice(0, 16)
-            ) : (
+          <ScrollArea.Autosize mah={200} type="scroll">
+            {options.length > 0 ? (
               options
-            )
-          ) : (
-            <Combobox.Empty>Nothing found</Combobox.Empty>
-          )}
+            ) : (
+              <Combobox.Empty>Nothing found</Combobox.Empty>
+            )}
+          </ScrollArea.Autosize>
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>

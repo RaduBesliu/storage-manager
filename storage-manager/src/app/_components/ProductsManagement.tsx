@@ -18,6 +18,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
+import { Event } from "~/utils/types";
 
 export const ProductsManagement: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState(0);
@@ -82,6 +83,8 @@ export const ProductsManagement: React.FC = () => {
       price: 0,
       quantity: 0,
       storeId: 0,
+      details: "",
+      operationType: Event.ADJUSTMENT,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
@@ -89,6 +92,8 @@ export const ProductsManagement: React.FC = () => {
       price: (value) => (value > 0 ? null : "Price is required"),
       quantity: (value) => (value > 0 ? null : "Quantity is required"),
       storeId: (value) => (value !== 0 ? null : "Store is required"),
+      operationType: (value) =>
+        value.length > 0 ? null : "Operation type is required",
     },
   });
 
@@ -319,6 +324,8 @@ export const ProductsManagement: React.FC = () => {
                   price: values.price,
                   quantity: values.quantity,
                   storeId: values.storeId,
+                  details: values.details,
+                  operationType: values.operationType,
                 });
 
                 editForm.reset();
@@ -393,6 +400,24 @@ export const ProductsManagement: React.FC = () => {
                     parseInt(event.target.value),
                   );
                 }}
+              />
+
+              <TextInput
+                label="Details"
+                placeholder={"Reason for edit or supplier details"}
+                key={editForm.key("details")}
+                {...editForm.getInputProps("details")}
+              />
+
+              <NativeSelect
+                withAsterisk
+                required
+                label="Operation type"
+                data={Object.values(Event).map((event) => ({
+                  label: event as string,
+                  value: event as string,
+                }))}
+                {...editForm.getInputProps("operationType")}
               />
 
               <Group justify="flex-end" mt="md">

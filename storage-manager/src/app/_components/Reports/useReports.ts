@@ -7,9 +7,9 @@ export const useReports = (filters?: ReportFilters) => {
   const queryFilters = useMemo(
     () => ({
       eventType: filters?.eventType ?? Event.SALE,
-      storeChainId: filters?.storeChainId ?? 0,
-      storeId: filters?.storeId ?? 0,
-      productId: filters?.productId ?? 0,
+      storeChainId: filters?.storeChainId ?? null,
+      storeId: filters?.storeId ?? null,
+      productId: filters?.productId ?? null,
       startDate:
         filters?.dateRange?.start ??
         new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
