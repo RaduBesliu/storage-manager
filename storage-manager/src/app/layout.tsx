@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 import "~/styles/preflight.css";
 import "@mantine/core/styles.css";
 // import "@mantine/form/styles.css";
+import "@mantine/dates/styles.css";
 
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { GeistSans } from "geist/font/sans";

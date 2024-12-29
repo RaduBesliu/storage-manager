@@ -112,6 +112,12 @@ export const ProductsManagement: React.FC = () => {
       <Table.Td>
         <Text c="lime.6">{product.quantity}</Text>
       </Table.Td>
+      <Table.Td>
+        <Text c="gray.4">
+          {stores?.filter((store) => store.id === product.storeId)[0]?.name ??
+            ""}
+        </Text>
+      </Table.Td>
       <Table.Td
         classNames={{
           td: "flex justify-end",
@@ -177,6 +183,7 @@ export const ProductsManagement: React.FC = () => {
                   <Table.Th>Category</Table.Th>
                   <Table.Th>Price</Table.Th>
                   <Table.Th>Quantity</Table.Th>
+                  <Table.Th>Store Name</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{rows}</Table.Tbody>

@@ -83,27 +83,93 @@ model StoreChain {
 }
 
 model Store {
-    id           Int         @id @default(autoincrement())
+    id           Int           @id @default(autoincrement())
     name         String
     location     String
-    createdAt    DateTime    @default(now())
-    updatedAt    DateTime    @updatedAt
-    createdBy    User        @relation(fields: [createdById], references: [id])
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+    createdBy    User          @relation(fields: [createdById], references: [id])
     createdById  String
-    StoreChain   StoreChain? @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
+    StoreChain   StoreChain?   @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
     storeChainId Int?
     Product      Product[]
+    Sale         Sale[]
+    Restock      Restock[]
+    Return       Return[]
+    PriceChange  PriceChange[]
+    Adjustment   Adjustment[]
 }
 
 model Product {
-    id          Int      @id @default(autoincrement())
+    id          Int           @id @default(autoincrement())
     name        String
     category    String
     description String
     price       Float
     quantity    Int
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    Store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+    Store       Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
     storeId     Int
+    Sale        Sale[]
+    Restock     Restock[]
+    Return      Return[]
+    PriceChange PriceChange[]
+    Adjustment  Adjustment[]
+}
+
+model Sale {
+    id         Int      @id @default(autoincrement())
+    productId  Int
+    quantity   Int // Quantity sold
+    totalPrice Float // Total sale amount (price * quantity)
+    saleDate   DateTime @default(now())
+    storeId    Int
+    Store      Store    @relation(fields: [storeId], references: [id])
+    Product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Restock {
+    id          Int      @id @default(autoincrement())
+    productId   Int
+    quantity    Int // Quantity added to inventory
+    restockDate DateTime @default(now())
+    supplier    String? // Optional: Supplier or order reference
+    storeId     Int
+    Store       Store    @relation(fields: [storeId], references: [id])
+    Product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Return {
+    id         Int      @id @default(autoincrement())
+    productId  Int
+    quantity   Int // Quantity returned
+    returnDate DateTime @default(now())
+    reason     String? // Optional: Reason for return (e.g., damaged, wrong size)
+    storeId    Int
+    Store      Store    @relation(fields: [storeId], references: [id])
+    Product    Product  @relation(fields: [productId], references: [id])
+}
+
+model PriceChange {
+    id         Int      @id @default(autoincrement())
+    productId  Int
+    oldPrice   Float // Previous price before change
+    newPrice   Float // New price after change
+    changeDate DateTime @default(now())
+    reason     String? // Optional: Reason for price change (e.g., seasonal sale, cost increase)
+    storeId    Int
+    Store      Store    @relation(fields: [storeId], references: [id])
+    Product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Adjustment {
+    id             Int      @id @default(autoincrement())
+    productId      Int
+    quantity       Int // Quantity adjustment (can be positive or negative)
+    adjustmentDate DateTime @default(now())
+    reason         String? // Optional: Reason for adjustment (e.g., stock audit, system error)
+    storeId        Int
+    Store          Store    @relation(fields: [storeId], references: [id])
+    Product        Product  @relation(fields: [productId], references: [id])
 }

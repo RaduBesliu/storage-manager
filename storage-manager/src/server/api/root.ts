@@ -2,6 +2,7 @@ import { productRouter } from "~/server/api/routers/product";
 import { storeRouter } from "~/server/api/routers/store";
 import { storeChainRouter } from "~/server/api/routers/storeChain";
 import { userRouter } from "~/server/api/routers/user";
+import { reportRouter } from "~/server/api/routers/report";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   store: storeRouter,
   storeChain: storeChainRouter,
   user: userRouter,
+  report: reportRouter,
 });
 
 // export type definition of API

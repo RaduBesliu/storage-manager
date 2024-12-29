@@ -20,7 +20,7 @@ const data = [
   { link: "/products", label: "Products", icon: IconShoppingCart },
   { link: "/", label: "Alerts", icon: IconBell },
   { link: "/", label: "Orders", icon: IconTruckDelivery },
-  { link: "/", label: "Reports", icon: IconReport },
+  { link: "/reports", label: "Reports", icon: IconReport },
 ];
 const validLinks = data.map((item) => item.link);
 
