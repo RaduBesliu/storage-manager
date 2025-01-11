@@ -29,11 +29,12 @@ async function main() {
       email: "superadmin@gmail.com",
       password: bcrypt.hashSync("superadmin", 10),
       role: "SUPER_ADMIN",
-      storeId: 0,
+      storeId: null,
       emailVerified: new Date(),
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const storeAdmin = await prisma.user.create({
     data: {
       name: "Store Admin",
@@ -45,6 +46,7 @@ async function main() {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const employee = await prisma.user.create({
     data: {
       name: "Employee",
@@ -189,7 +191,7 @@ async function main() {
         });
 
         let lastPrice = createdProduct.price;
-        let currentDate = new Date();
+        const currentDate = new Date();
         currentDate.setDate(currentDate.getDate() - 365); // Start one year ago
 
         // Create 20 entries for each product event
@@ -281,10 +283,11 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
   });

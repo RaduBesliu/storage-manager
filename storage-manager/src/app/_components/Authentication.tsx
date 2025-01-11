@@ -121,7 +121,7 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
           await signIn("credentials", {
             email: values.email,
             password: values.password,
-            redirectTo: "/",
+            redirectTo: "/products",
           });
         } catch (error) {
           console.error(error);

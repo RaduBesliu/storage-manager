@@ -386,7 +386,7 @@ export const UserManagement: React.FC = () => {
               onClick={() => {
                 doDeleteUser.mutate({ id: selectedUser });
                 if (session.data?.user?.id === selectedUser) {
-                  signOut({ redirectTo: "/" });
+                  void signOut({ redirectTo: "/" });
                 }
                 closeConfirmDelete();
               }}

@@ -146,7 +146,7 @@ export const ProductsManagement: React.FC = () => {
 
   useEffect(() => {
     if (inView && hasNextPage) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [inView, hasNextPage, fetchNextPage]);
 
@@ -166,8 +166,7 @@ export const ProductsManagement: React.FC = () => {
       </Table.Td>
       <Table.Td>
         <Text c="gray.4">
-          {stores?.filter((store) => store.id === product.storeId)[0]?.name ??
-            ""}
+          {stores?.find((store) => store.id === product.storeId)?.name ?? ""}
         </Text>
       </Table.Td>
       {session.data?.user?.role !== Role.STORE_EMPLOYEE ? (

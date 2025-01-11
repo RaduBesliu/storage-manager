@@ -14,9 +14,7 @@ export const productRouter = createTRPCRouter({
         include: {
           Store: true,
         },
-        where: {
-          storeId: input.storeId,
-        },
+        where: input.storeId ? { storeId: input.storeId } : undefined,
         orderBy: [
           {
             Store: {
@@ -47,9 +45,7 @@ export const productRouter = createTRPCRouter({
         take: input.limit + 1, // Fetch one extra item to check if there's a next page
         skip: input.cursor ? 1 : 0, // Skip the first item if there's a cursor
         cursor: input.cursor ? { id: input.cursor } : undefined,
-        where: {
-          storeId: input.storeId,
-        },
+        where: input.storeId ? { storeId: input.storeId } : undefined,
         orderBy: [
           {
             Store: {
@@ -65,7 +61,7 @@ export const productRouter = createTRPCRouter({
       let nextCursor: typeof input.cursor = undefined;
       if (products.length > input.limit) {
         const lastProduct = products.pop();
-        nextCursor = lastProduct?.id || null;
+        nextCursor = lastProduct?.id ?? null;
       }
 
       return { items: products, nextCursor };

@@ -43,11 +43,11 @@ export const renderSaleReport = (saleReport: SaleReport[]) => {
             fontSize: 14,
             offset: -20,
           }}
-          domain={[0, "auto"]}
+          domain={["auto", "auto"]}
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length) {
+            if (active && payload?.length) {
               const data = payload[0]?.payload;
               return (
                 <div
@@ -110,7 +110,7 @@ export const renderRestockReport = (restockReport: RestockReport[]) => {
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length) {
+            if (active && payload?.length) {
               const data = payload[0]?.payload;
               return (
                 <div
@@ -169,7 +169,7 @@ export const renderReturnReport = (returnReport: ReturnReport[]) => {
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length) {
+            if (active && payload?.length) {
               const data = payload[0]?.payload;
               return (
                 <div
@@ -227,11 +227,11 @@ export const renderPriceChangeReport = (
             fontSize: 14,
             offset: -20,
           }}
-          domain={[0, "auto"]}
+          domain={["auto", "auto"]}
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length) {
+            if (active && payload?.length) {
               const data = payload[0]?.payload;
               return (
                 <div
@@ -296,7 +296,7 @@ export const renderAdjustmentReport = (
         />
         <Tooltip
           content={({ active, payload }) => {
-            if (active && payload && payload.length) {
+            if (active && payload?.length) {
               const data = payload[0]?.payload;
               return (
                 <div
