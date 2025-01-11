@@ -13,6 +13,7 @@ import {
   Modal,
   NativeSelect,
   ScrollArea,
+  Select,
   Table,
   Text,
   TextInput,
@@ -40,6 +41,7 @@ export const UserManagement: React.FC = () => {
   ] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
+  const { data: stores } = api.store.get.useQuery();
   const doCreateUser = api.user.create.useMutation({
     onSuccess: async () => {
       await utils.user.get.invalidate();
@@ -72,6 +74,7 @@ export const UserManagement: React.FC = () => {
       email: "",
       role: Role.STORE_EMPLOYEE,
       password: "",
+      storeId: null as string | null,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
@@ -86,6 +89,7 @@ export const UserManagement: React.FC = () => {
       name: "",
       email: "",
       role: Role.STORE_EMPLOYEE as Role,
+      storeId: null as string | null,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
@@ -128,6 +132,7 @@ export const UserManagement: React.FC = () => {
                 name: user.name ?? "",
                 email: user.email,
                 role: user.role,
+                storeId: user.storeId ? user.storeId.toString() : null,
               });
               openUpdate();
             }}
@@ -202,6 +207,7 @@ export const UserManagement: React.FC = () => {
                   email: values.email,
                   role: values.role,
                   password: values.password,
+                  storeId: values.storeId ? parseInt(values.storeId) : null,
                 });
 
                 createForm.reset();
@@ -256,6 +262,18 @@ export const UserManagement: React.FC = () => {
                 {...createForm.getInputProps("role")}
               />
 
+              <Select
+                label="Store"
+                key={createForm.key("storeId")}
+                placeholder="Select store"
+                allowDeselect={true}
+                data={stores?.map((store) => ({
+                  value: store.id.toString(),
+                  label: store.name,
+                }))}
+                {...createForm.getInputProps("storeId")}
+              />
+
               <Group justify="flex-end" mt="md">
                 <Button type="submit">Submit</Button>
               </Group>
@@ -283,6 +301,7 @@ export const UserManagement: React.FC = () => {
                   name: values.name,
                   email: values.email,
                   role: values.role,
+                  storeId: values.storeId ? parseInt(values.storeId) : null,
                 });
 
                 updateForm.reset();
@@ -326,6 +345,18 @@ export const UserManagement: React.FC = () => {
                   { value: Role.SUPER_ADMIN, label: "Super Admin" },
                 ]}
                 {...updateForm.getInputProps("role")}
+              />
+
+              <Select
+                label="Store"
+                key={updateForm.key("storeId")}
+                placeholder="Select store"
+                allowDeselect={true}
+                data={stores?.map((store) => ({
+                  value: store.id.toString(),
+                  label: store.name,
+                }))}
+                {...updateForm.getInputProps("storeId")}
               />
 
               <Group justify="flex-end" mt="md">

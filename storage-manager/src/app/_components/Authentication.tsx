@@ -20,7 +20,6 @@ import { IconAt, IconLock } from "@tabler/icons-react";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { z } from "zod";
 import { api } from "~/trpc/react";
-import { Role } from "@prisma/client";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 type AuthenticationFormProps = {
@@ -33,7 +32,7 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
   const session = useSession();
   const [formType, setFormType] = useState<"register" | "login">("register");
   const [loading, setLoading] = useState(false);
-  const doCreateUser = api.user.create.useMutation();
+  const doRegisterUser = api.user.register.useMutation();
 
   const toggleFormType = () => {
     setFormType((current) => (current === "register" ? "login" : "register"));
@@ -111,10 +110,9 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
     }
 
     if (formType === "register") {
-      doCreateUser.mutate({
+      doRegisterUser.mutate({
         name: values.name,
         email: values.email,
-        role: Role.STORE_EMPLOYEE,
         password: values.password,
       });
     } else {

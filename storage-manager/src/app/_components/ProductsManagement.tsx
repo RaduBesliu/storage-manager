@@ -14,6 +14,7 @@ import {
   NativeSelect,
   NumberInput,
   ScrollArea,
+  Select,
   Table,
   Text,
   TextInput,
@@ -21,8 +22,11 @@ import {
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
 import { Event } from "~/utils/types";
+import { useSession } from "next-auth/react";
+import { Role } from "@prisma/client";
 
 export const ProductsManagement: React.FC = () => {
+  const session = useSession();
   const tableRef = useRef<HTMLDivElement | null>(null);
   const { ref, inView } = useInView({
     root: tableRef.current,
@@ -48,6 +52,7 @@ export const ProductsManagement: React.FC = () => {
   } = api.product.getInfinite.useInfiniteQuery(
     {
       limit: 20,
+      storeId: session.data?.user?.storeId ?? undefined,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -61,6 +66,7 @@ export const ProductsManagement: React.FC = () => {
 
   const doCreateProduct = api.product.create.useMutation({
     onSuccess: async () => {
+      await utils.product.getInfinite.invalidate();
       await utils.product.get.invalidate();
     },
     onError: (error) => {
@@ -69,6 +75,7 @@ export const ProductsManagement: React.FC = () => {
   });
   const doEditProduct = api.product.edit.useMutation({
     onSuccess: async () => {
+      await utils.product.getInfinite.invalidate();
       await utils.product.get.invalidate();
     },
     onError: (error) => {
@@ -77,6 +84,7 @@ export const ProductsManagement: React.FC = () => {
   });
   const doDeleteProduct = api.product.delete.useMutation({
     onSuccess: async () => {
+      await utils.product.getInfinite.invalidate();
       await utils.product.get.invalidate();
     },
     onError: (error) => {
@@ -92,14 +100,14 @@ export const ProductsManagement: React.FC = () => {
       description: "",
       price: 0,
       quantity: 0,
-      storeId: 0,
+      storeId: "-1" as string | null,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
       category: (value) => (value.length > 0 ? null : "Category is required"),
       price: (value) => (value > 0 ? null : "Price is required"),
       quantity: (value) => (value > 0 ? null : "Quantity is required"),
-      storeId: (value) => (value !== 0 ? null : "Store is required"),
+      storeId: (value) => (value ? null : "Store is required"),
     },
   });
 
@@ -111,7 +119,7 @@ export const ProductsManagement: React.FC = () => {
       description: "",
       price: 0,
       quantity: 0,
-      storeId: 0,
+      storeId: "-1" as string | null,
       details: "",
       operationType: Event.ADJUSTMENT,
     },
@@ -120,15 +128,19 @@ export const ProductsManagement: React.FC = () => {
       category: (value) => (value.length > 0 ? null : "Category is required"),
       price: (value) => (value > 0 ? null : "Price is required"),
       quantity: (value) => (value > 0 ? null : "Quantity is required"),
-      storeId: (value) => (value !== 0 ? null : "Store is required"),
+      storeId: (value) => (value ? null : "Store is required"),
       operationType: (value) =>
         value.length > 0 ? null : "Operation type is required",
     },
   });
 
   useEffect(() => {
-    if (stores && stores?.length > 0 && createForm.getValues().storeId === 0) {
-      createForm.setFieldValue("storeId", stores[0]!.id);
+    if (
+      stores &&
+      stores?.length > 0 &&
+      createForm.getValues().storeId === "-1"
+    ) {
+      createForm.setFieldValue("storeId", stores[0]!.id.toString());
     }
   }, [createForm, stores]);
 
@@ -158,58 +170,62 @@ export const ProductsManagement: React.FC = () => {
             ""}
         </Text>
       </Table.Td>
-      <Table.Td
-        classNames={{
-          td: "flex justify-end",
-        }}
-      >
-        <Group gap={0} justify="flex-end">
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            onClick={() => {
-              setSelectedProduct(product.id);
-              editForm.setValues({
-                name: product.name,
-                category: product.category,
-                description: product.description,
-                price: product.price,
-                quantity: product.quantity,
-                storeId: product.storeId,
-              });
-              openEdit();
-            }}
-          >
-            <IconPencil size={16} stroke={1.5} />
-          </ActionIcon>
-          <ActionIcon
-            variant="subtle"
-            color="red"
-            onClick={() => {
-              setSelectedProduct(product.id);
-              openConfirmDelete();
-            }}
-          >
-            <IconTrash size={16} stroke={1.5} />
-          </ActionIcon>
-        </Group>
-      </Table.Td>
+      {session.data?.user?.role !== Role.STORE_EMPLOYEE ? (
+        <Table.Td
+          classNames={{
+            td: "flex justify-end",
+          }}
+        >
+          <Group gap={0} justify="flex-end">
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={() => {
+                setSelectedProduct(product.id);
+                editForm.setValues({
+                  name: product.name,
+                  category: product.category,
+                  description: product.description,
+                  price: product.price,
+                  quantity: product.quantity,
+                  storeId: product.storeId.toString(),
+                });
+                openEdit();
+              }}
+            >
+              <IconPencil size={16} stroke={1.5} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={() => {
+                setSelectedProduct(product.id);
+                openConfirmDelete();
+              }}
+            >
+              <IconTrash size={16} stroke={1.5} />
+            </ActionIcon>
+          </Group>
+        </Table.Td>
+      ) : null}
     </Table.Tr>
   ));
 
   return (
     <>
       <div className="flex h-screen flex-col gap-2 py-10">
-        <div className="flex justify-end">
-          <Button variant="subtle" color="teal" onClick={openCreate}>
-            <div className="flex items-center gap-1">
-              <IconPlus size={16} stroke={1.5} />
-              <Text fz="sm" fw={500}>
-                Add Product
-              </Text>
-            </div>
-          </Button>
-        </div>
+        {session.data?.user?.role !== Role.STORE_EMPLOYEE ? (
+          <div className="flex justify-end">
+            <Button variant="subtle" color="teal" onClick={openCreate}>
+              <div className="flex items-center gap-1">
+                <IconPlus size={16} stroke={1.5} />
+                <Text fz="sm" fw={500}>
+                  Add Product
+                </Text>
+              </div>
+            </Button>
+          </div>
+        ) : null}
         <ScrollArea style={{ flex: 1, overflow: "auto" }} ref={tableRef}>
           <Table.ScrollContainer minWidth={800}>
             <Table
@@ -268,7 +284,7 @@ export const ProductsManagement: React.FC = () => {
                   description: values.description,
                   price: values.price,
                   quantity: values.quantity,
-                  storeId: values.storeId,
+                  storeId: values.storeId ? parseInt(values.storeId) : 0,
                 });
 
                 createForm.reset();
@@ -328,21 +344,16 @@ export const ProductsManagement: React.FC = () => {
                 {...createForm.getInputProps("quantity")}
               />
 
-              <NativeSelect
+              <Select
                 withAsterisk
                 required
                 label="Store"
+                allowDeselect={false}
                 data={stores?.map((store) => ({
                   label: store.name,
                   value: store.id.toString(),
                 }))}
                 {...createForm.getInputProps("storeId")}
-                onChange={(event) => {
-                  createForm.setFieldValue(
-                    "storeId",
-                    parseInt(event.target.value),
-                  );
-                }}
               />
 
               <Group justify="flex-end" mt="md">
@@ -374,7 +385,7 @@ export const ProductsManagement: React.FC = () => {
                   description: values.description,
                   price: values.price,
                   quantity: values.quantity,
-                  storeId: values.storeId,
+                  storeId: values.storeId ? parseInt(values.storeId) : 0,
                   details: values.details,
                   operationType: values.operationType,
                 });
@@ -445,12 +456,6 @@ export const ProductsManagement: React.FC = () => {
                   value: store.id.toString(),
                 }))}
                 {...editForm.getInputProps("storeId")}
-                onChange={(event) => {
-                  editForm.setFieldValue(
-                    "storeId",
-                    parseInt(event.target.value),
-                  );
-                }}
               />
 
               <TextInput

@@ -31,12 +31,13 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
   // Product, Store, Store Chain
 
   const session = useSession();
+  const storeIdIfPresent = session.data?.user?.storeId ?? null;
   const [eventWasSelected, setEventWasSelected] = useState(false);
 
   const [filters, setFilters] = useState<ReportFilters>({
     eventType: Event.SALE,
     productId: null,
-    storeId: null,
+    storeId: storeIdIfPresent ?? null,
     storeChainId: null,
     dateRange: {
       start: null, // new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
@@ -44,7 +45,9 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
     },
   });
 
-  const { data: products } = api.product.get.useQuery();
+  const { data: products } = api.product.get.useQuery({
+    storeId: session.data?.user?.storeId ?? undefined,
+  });
   const { data: stores } = api.store.get.useQuery();
   const { data: storeChains } = api.storeChain.get.useQuery();
 
@@ -164,6 +167,12 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                   (chain) => chain.id === store.storeChainId,
                 )?.name,
               })) ?? []
+            }
+            readOnlyValue={
+              storeIdIfPresent
+                ? (stores?.find((store) => store.id === storeIdIfPresent)
+                    ?.name ?? storeIdIfPresent.toString())
+                : undefined
             }
             onSubmit={(val) =>
               setFilters({
