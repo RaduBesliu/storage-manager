@@ -26,6 +26,10 @@ export const ProductsManagement: React.FC = () => {
     useDisclosure(false);
   const [editOpened, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
+  const [
+    confirmDeleteOpened,
+    { open: openConfirmDelete, close: closeConfirmDelete },
+  ] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: stores } = api.store.get.useQuery();
   const { data: products } = api.product.get.useQuery();
@@ -151,7 +155,8 @@ export const ProductsManagement: React.FC = () => {
             variant="subtle"
             color="red"
             onClick={() => {
-              doDeleteProduct.mutate({ id: product.id });
+              setSelectedProduct(product.id);
+              openConfirmDelete();
             }}
           >
             <IconTrash size={16} stroke={1.5} />
@@ -425,6 +430,33 @@ export const ProductsManagement: React.FC = () => {
               </Group>
             </Flex>
           </form>
+        </Flex>
+      </Modal>
+
+      <Modal
+        opened={confirmDeleteOpened}
+        onClose={closeConfirmDelete}
+        title="Confirm Delete"
+        size="sm"
+        centered
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+      >
+        <Flex direction="column" gap="md">
+          <Text>Are you sure you want to delete this product?</Text>
+          <Group justify="flex-end">
+            <Button
+              color="red"
+              onClick={() => {
+                doDeleteProduct.mutate({ id: selectedProduct });
+                closeConfirmDelete();
+              }}
+            >
+              Delete
+            </Button>
+          </Group>
         </Flex>
       </Modal>
     </>

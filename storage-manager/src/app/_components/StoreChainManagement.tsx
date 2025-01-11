@@ -26,7 +26,14 @@ export const StoreChainManagement: React.FC = () => {
     useDisclosure(false);
   const [editOpened, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
-
+  const [
+    confirmDeleteStoreChainOpened,
+    { open: openConfirmDeleteStoreChain, close: closeConfirmDeleteStoreChain },
+  ] = useDisclosure(false);
+  const [
+    confirmDeleteStoreOpened,
+    { open: openConfirmDeleteStore, close: closeConfirmDeleteStore },
+  ] = useDisclosure(false);
   const [storeModalOpened, { open: openStoreModal, close: closeStoreModal }] =
     useDisclosure(false);
   const [
@@ -40,6 +47,8 @@ export const StoreChainManagement: React.FC = () => {
     "store-manager-page",
     "create-store-page",
     "edit-store-page",
+    "confirm-delete-store-chain-page",
+    "confirm-delete-store-page",
   ]);
 
   const utils = api.useUtils();
@@ -168,7 +177,8 @@ export const StoreChainManagement: React.FC = () => {
             variant="subtle"
             color="red"
             onClick={() => {
-              doDeleteStoreChain.mutate({ id: storeChain.id });
+              setSelectedStoreChain(storeChain.id);
+              openConfirmDeleteStoreChain();
             }}
           >
             <IconTrash size={16} stroke={1.5} />
@@ -215,7 +225,8 @@ export const StoreChainManagement: React.FC = () => {
             variant="subtle"
             color="red"
             onClick={() => {
-              doDeleteStore.mutate({ id: store.id });
+              setSelectedStore(store.id);
+              openConfirmDeleteStore();
             }}
           >
             <IconTrash size={16} stroke={1.5} />
@@ -569,6 +580,62 @@ export const StoreChainManagement: React.FC = () => {
                 </Group>
               </Flex>
             </form>
+          </Flex>
+        </Modal>
+
+        <Modal
+          {...modalStack.register("confirm-delete-store-chain-page")}
+          opened={confirmDeleteStoreChainOpened}
+          onClose={closeConfirmDeleteStoreChain}
+          title="Confirm Delete Store Chain"
+          size="sm"
+          centered
+          overlayProps={{
+            backgroundOpacity: 0.55,
+            blur: 3,
+          }}
+        >
+          <Flex direction="column" gap="md">
+            <Text>Are you sure you want to delete this store chain?</Text>
+            <Group justify="flex-end">
+              <Button
+                color="red"
+                onClick={() => {
+                  doDeleteStoreChain.mutate({ id: selectedStoreChain });
+                  closeConfirmDeleteStoreChain();
+                }}
+              >
+                Delete
+              </Button>
+            </Group>
+          </Flex>
+        </Modal>
+
+        <Modal
+          {...modalStack.register("confirm-delete-store-page")}
+          opened={confirmDeleteStoreOpened}
+          onClose={closeConfirmDeleteStore}
+          title="Confirm Delete Store"
+          size="sm"
+          centered
+          overlayProps={{
+            backgroundOpacity: 0.55,
+            blur: 3,
+          }}
+        >
+          <Flex direction="column" gap="md">
+            <Text>Are you sure you want to delete this store?</Text>
+            <Group justify="flex-end">
+              <Button
+                color="red"
+                onClick={() => {
+                  doDeleteStore.mutate({ id: selectedStore });
+                  closeConfirmDeleteStore();
+                }}
+              >
+                Delete
+              </Button>
+            </Group>
           </Flex>
         </Modal>
       </Modal.Stack>

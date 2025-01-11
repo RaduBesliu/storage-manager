@@ -20,6 +20,7 @@ import {
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
+import { signOut, useSession } from "next-auth/react";
 
 const roleColors: Record<string, string> = {
   SUPER_ADMIN: "blue",
@@ -28,10 +29,15 @@ const roleColors: Record<string, string> = {
 };
 
 export const UserManagement: React.FC = () => {
+  const session = useSession();
   const [selectedUser, setSelectedUser] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const [updateOpened, { open: openUpdate, close: closeUpdate }] =
     useDisclosure(false);
+  const [
+    confirmDeleteOpened,
+    { open: openConfirmDelete, close: closeConfirmDelete },
+  ] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
   const doCreateUser = api.user.create.useMutation({
@@ -132,7 +138,8 @@ export const UserManagement: React.FC = () => {
             variant="subtle"
             color="red"
             onClick={() => {
-              doDeleteUser.mutate({ id: user.id });
+              setSelectedUser(user.id);
+              openConfirmDelete();
             }}
           >
             <IconTrash size={16} stroke={1.5} />
@@ -326,6 +333,36 @@ export const UserManagement: React.FC = () => {
               </Group>
             </Flex>
           </form>
+        </Flex>
+      </Modal>
+
+      <Modal
+        opened={confirmDeleteOpened}
+        onClose={closeConfirmDelete}
+        title="Confirm Delete"
+        size="sm"
+        centered
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+      >
+        <Flex direction="column" gap="md">
+          <Text>Are you sure you want to delete this user?</Text>
+          <Group justify="flex-end">
+            <Button
+              color="red"
+              onClick={() => {
+                doDeleteUser.mutate({ id: selectedUser });
+                if (session.data?.user?.id === selectedUser) {
+                  signOut({ redirectTo: "/" });
+                }
+                closeConfirmDelete();
+              }}
+            >
+              Delete
+            </Button>
+          </Group>
         </Flex>
       </Modal>
     </>
