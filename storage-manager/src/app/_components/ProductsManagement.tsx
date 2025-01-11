@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -8,6 +9,7 @@ import {
   Button,
   Flex,
   Group,
+  Loader,
   Modal,
   NativeSelect,
   NumberInput,
@@ -21,6 +23,12 @@ import { api } from "~/trpc/react";
 import { Event } from "~/utils/types";
 
 export const ProductsManagement: React.FC = () => {
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const { ref, inView } = useInView({
+    root: tableRef.current,
+    threshold: 1.0, // Trigger when the element is fully in view
+  });
+
   const [selectedProduct, setSelectedProduct] = useState(0);
   const [createOpened, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
@@ -32,7 +40,24 @@ export const ProductsManagement: React.FC = () => {
   ] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: stores } = api.store.get.useQuery();
-  const { data: products } = api.product.get.useQuery();
+  const {
+    data: productsData,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = api.product.getInfinite.useInfiniteQuery(
+    {
+      limit: 20,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      refetchOnWindowFocus: false,
+    },
+  );
+  const products = useMemo(
+    () => productsData?.pages.flatMap((page) => page.items) ?? [],
+    [productsData],
+  );
 
   const doCreateProduct = api.product.create.useMutation({
     onSuccess: async () => {
@@ -107,6 +132,12 @@ export const ProductsManagement: React.FC = () => {
     }
   }, [createForm, stores]);
 
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
+
   const rows = products?.map((product) => (
     <Table.Tr key={product.id}>
       <Table.Td>
@@ -179,7 +210,7 @@ export const ProductsManagement: React.FC = () => {
             </div>
           </Button>
         </div>
-        <ScrollArea style={{ flex: 1, overflow: "auto" }}>
+        <ScrollArea style={{ flex: 1, overflow: "auto" }} ref={tableRef}>
           <Table.ScrollContainer minWidth={800}>
             <Table
               highlightOnHover
@@ -196,7 +227,22 @@ export const ProductsManagement: React.FC = () => {
                   <Table.Th>Store Name</Table.Th>
                 </Table.Tr>
               </Table.Thead>
-              <Table.Tbody>{rows}</Table.Tbody>
+              <Table.Tbody>
+                {rows}
+                {hasNextPage && (
+                  <Table.Tr>
+                    <Table.Td colSpan={5}>
+                      <div ref={ref}>
+                        <Flex align="center" justify="center">
+                          {isFetchingNextPage ? (
+                            <Loader color="white" type="dots" />
+                          ) : null}
+                        </Flex>
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
             </Table>
           </Table.ScrollContainer>
         </ScrollArea>

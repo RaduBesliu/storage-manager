@@ -22,6 +22,42 @@ export const productRouter = createTRPCRouter({
     return products;
   }),
 
+  getInfinite: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).optional().default(10),
+        cursor: z.number().nullish(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const products = await ctx.db.product.findMany({
+        include: {
+          Store: true,
+        },
+        take: input.limit + 1, // Fetch one extra item to check if there's a next page
+        skip: input.cursor ? 1 : 0, // Skip the first item if there's a cursor
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        orderBy: [
+          {
+            Store: {
+              id: "asc", // Sort by store name in ascending order
+            },
+          },
+          {
+            name: "asc", // Sort by product name in ascending order
+          },
+        ],
+      });
+
+      let nextCursor: typeof input.cursor = undefined;
+      if (products.length > input.limit) {
+        const lastProduct = products.pop();
+        nextCursor = lastProduct?.id || null;
+      }
+
+      return { items: products, nextCursor };
+    }),
+
   getByStoreId: protectedProcedure
     .input(z.object({ storeId: z.number() }))
     .query(async ({ ctx, input }) => {
