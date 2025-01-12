@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import type { ReportFilters, DisplayReportFilters } from "~/utils/types";
 import { Event } from "~/utils/types";
 import { useReports } from "./useReports";
-import { getTimestampForFilename } from "~/utils/utils";
+import { addCurrentTimeToDate, getTimestampForFilename } from "~/utils/utils";
 
 type ReportsHeaderProps = {
   onGenerate: (
@@ -76,8 +76,8 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
             setFilters({
               ...filters,
               dateRange: {
-                start: value[0],
-                end: value[1],
+                start: value[0] ? addCurrentTimeToDate(value[0]) : null,
+                end: value[1] ? addCurrentTimeToDate(value[1]) : null,
               },
             });
           }}
@@ -391,11 +391,17 @@ export const ReportsManagement: React.FC = () => {
                   className="report-badge"
                 >
                   {displayFilters?.dateRange.start
-                    ? format(displayFilters.dateRange.start, "MMM dd, yyyy")
+                    ? format(
+                        displayFilters.dateRange.start,
+                        "MMM dd, yyyy, hh:mm:ss a",
+                      )
                     : "N/A"}{" "}
                   -{" "}
                   {displayFilters?.dateRange.end
-                    ? format(displayFilters.dateRange.end, "MMM dd, yyyy")
+                    ? format(
+                        displayFilters.dateRange.end,
+                        "MMM dd, yyyy, hh:mm:ss a",
+                      )
                     : "N/A"}
                 </Badge>
                 {displayFilters?.storeChainName ? (

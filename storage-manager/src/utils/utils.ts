@@ -16,3 +16,16 @@ export const getTimestampForFilename = () => {
 
   return `${year}${month}${day}T${hours}${minutes}${seconds}`;
 };
+
+export const addCurrentTimeToDate = (date: Date) => {
+  const now = new Date();
+
+  date.setHours(
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds(),
+  );
+
+  return date;
+};
