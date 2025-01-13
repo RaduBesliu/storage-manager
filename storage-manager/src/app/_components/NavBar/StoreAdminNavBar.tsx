@@ -18,7 +18,7 @@ import { usePathname } from "next/navigation";
 
 const data = [
   { link: "/products", label: "Products", icon: IconShoppingCart },
-  { link: "/", label: "Alerts", icon: IconBell },
+  { link: "//alerts", label: "Alerts", icon: IconBell },
   { link: "/", label: "Orders", icon: IconTruckDelivery },
   { link: "/reports", label: "Reports", icon: IconReport },
 ];

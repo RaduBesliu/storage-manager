@@ -23,7 +23,6 @@ const StockMonitoring = () => {
     storeChainId?: number;
   }>({});
 
-  // Fetching data
   const { data: storeChains } = api.storeChain.get.useQuery();
   const { data: stores } = api.store.get.useQuery();
   const { data: products } = api.product.get.useQuery();
@@ -64,7 +63,6 @@ const StockMonitoring = () => {
         🌟 Stock Monitoring Dashboard 🌟
       </Title>
 
-      {/* Filters */}
       <Group
         gap="md"
         align="center"
@@ -92,7 +90,7 @@ const StockMonitoring = () => {
             },
             input: {
               background: "rgba(255, 255, 255, 0.9)",
-              color: "black", // Text negru
+              color: "black",
             },
           }}
         />
@@ -117,7 +115,7 @@ const StockMonitoring = () => {
             },
             input: {
               background: "rgba(255, 255, 255, 0.9)",
-              color: "black", // Text negru
+              color: "black",
             },
           }}
         />
@@ -142,7 +140,7 @@ const StockMonitoring = () => {
             },
             input: {
               background: "rgba(255, 255, 255, 0.9)",
-              color: "black", // Text negru
+              color: "black",
             },
           }}
         />
@@ -160,7 +158,6 @@ const StockMonitoring = () => {
         </Button>
       </Group>
 
-      {/* Product Display */}
       <ScrollArea
         style={{
           maxHeight: "500px",

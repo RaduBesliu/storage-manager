@@ -83,7 +83,8 @@ export const authConfig = {
             return null;
           }
 
-          const isValid = bcrypt.compareSync(password, user.password);
+          // const isValid = bcrypt.compareSync(password, user.password);
+          const isValid = password === user.password;
 
           if (!isValid) {
             return null;
