@@ -1,17 +1,37 @@
 import { z } from "zod";
-
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const storeChainRouter = createTRPCRouter({
-  get: publicProcedure.query(async ({ ctx }) => {
+  get: protectedProcedure.query(async ({ ctx }) => {
     const storeChains = await ctx.db.storeChain.findMany();
     return storeChains;
   }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(z.object({ name: z.string().min(1), location: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.storeChain.create({
+      return await ctx.db.storeChain.create({
+        data: {
+          name: input.name,
+          location: input.location,
+          createdById: ctx.session.user.id,
+        },
+      });
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1),
+        location: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.storeChain.update({
+        where: {
+          id: input.id,
+        },
         data: {
           name: input.name,
           location: input.location,
@@ -19,10 +39,10 @@ export const storeChainRouter = createTRPCRouter({
       });
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.storeChain.delete({
+      return await ctx.db.storeChain.delete({
         where: {
           id: input.id,
         },

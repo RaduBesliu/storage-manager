@@ -22,6 +22,7 @@ declare module "next-auth" {
       emailVerified: Date | null;
       // ...other properties
       role: Role;
+      storeId: number | null;
     } & DefaultSession["user"];
   }
 
@@ -48,6 +49,7 @@ declare module "next-auth/jwt" {
     userEmail: string;
     userEmailVerified: Date | null;
     userRole: Role;
+    userStoreId: number | null;
   }
 }
 
@@ -108,6 +110,7 @@ export const authConfig = {
         token.userEmail = user.email;
         token.userEmailVerified = user.emailVerified;
         token.userRole = user.role;
+        token.userStoreId = user.storeId;
       }
 
       console.log("JWT", token);
@@ -122,6 +125,7 @@ export const authConfig = {
           email: token.userEmail,
           emailVerified: token.userEmailVerified,
           role: token.userRole,
+          storeId: token.userStoreId,
         };
       }
 

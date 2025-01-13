@@ -20,7 +20,6 @@ import { IconAt, IconLock } from "@tabler/icons-react";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { z } from "zod";
 import { api } from "~/trpc/react";
-import { Role } from "@prisma/client";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 type AuthenticationFormProps = {
@@ -33,7 +32,7 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
   const session = useSession();
   const [formType, setFormType] = useState<"register" | "login">("register");
   const [loading, setLoading] = useState(false);
-  const doCreateUser = api.user.create.useMutation();
+  const doRegisterUser = api.user.register.useMutation();
 
   const toggleFormType = () => {
     setFormType((current) => (current === "register" ? "login" : "register"));
@@ -111,28 +110,19 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
     }
 
     if (formType === "register") {
-      doCreateUser.mutate({
+      doRegisterUser.mutate({
         name: values.name,
         email: values.email,
-        role: Role.STORE_EMPLOYEE,
         password: values.password,
       });
     } else {
       void (async () => {
         try {
-          const result = await signIn("credentials", {
+          await signIn("credentials", {
             email: values.email,
             password: values.password,
-            redirect: false,
+            redirectTo: "/products",
           });
-
-          console.log(result);
-
-          if (result?.error) {
-            console.error(result.error);
-          } else {
-            console.log("Logged in");
-          }
         } catch (error) {
           console.error(error);
         }
@@ -148,7 +138,11 @@ export const AuthenticationForm: React.FC<AuthenticationFormProps> = ({
       {session.status === "authenticated" ? (
         <Flex align="center" justify="space-between">
           <Title order={4}>You are already authenticated</Title>
-          <Button variant="outline" color="red" onClick={() => signOut()}>
+          <Button
+            variant="outline"
+            color="red"
+            onClick={() => void signOut({ redirectTo: "/" })}
+          >
             Logout
           </Button>
         </Flex>

@@ -1,71 +1,104 @@
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
-import type { Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 export const userRouter = createTRPCRouter({
-  get: publicProcedure.query(async ({ ctx }) => {
-    const users = await ctx.db.user.findMany();
-    return users;
-  }),
-
-  getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return ctx.db.user.findUnique({
-        where: {
-          id: input.id,
-        },
-      });
-    }),
-
-  create: publicProcedure
+  register: publicProcedure
     .input(
       z.object({
         name: z.string(),
         email: z.string().min(1),
-        role: z.custom<Role>(),
         password: z.string().min(1),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const hashedPassword = bcrypt.hashSync(input.password, 10);
 
-      return ctx.db.user.create({
+      return await ctx.db.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          password: hashedPassword,
+          role: Role.STORE_EMPLOYEE,
+          storeId: null,
+        },
+      });
+    }),
+
+  get: protectedProcedure.query(async ({ ctx }) => {
+    const users = await ctx.db.user.findMany();
+    return users;
+  }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.user.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        email: z.string().min(1),
+        role: z.custom<Role>(),
+        password: z.string().min(1),
+        storeId: z.number().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const hashedPassword = bcrypt.hashSync(input.password, 10);
+
+      return await ctx.db.user.create({
         data: {
           name: input.name,
           email: input.email,
           role: input.role,
           password: hashedPassword,
+          emailVerified: new Date(),
+          storeId: input.storeId,
         },
       });
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         name: z.string(),
         email: z.string().min(1),
+        role: z.custom<Role>(),
+        storeId: z.number().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.user.update({
+      return await ctx.db.user.update({
         where: {
           id: input.id,
         },
         data: {
           name: input.name,
           email: input.email,
+          role: input.role,
+          storeId: input.storeId,
         },
       });
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.user.delete({
+      return await ctx.db.user.delete({
         where: {
           id: input.id,
         },
