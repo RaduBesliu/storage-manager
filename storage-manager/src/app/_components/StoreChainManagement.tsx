@@ -59,7 +59,8 @@ export const StoreChainManagement: React.FC = () => {
 
   const doCreateStoreChain = api.storeChain.create.useMutation({
     onSuccess: async () => {
-      await utils.storeChain.get.invalidate();
+      await utils.storeChain.invalidate();
+      await utils.store.invalidate();
     },
     onError: (error) => {
       console.error(error);
@@ -67,7 +68,8 @@ export const StoreChainManagement: React.FC = () => {
   });
   const doEditStoreChain = api.storeChain.update.useMutation({
     onSuccess: async () => {
-      await utils.storeChain.get.invalidate();
+      await utils.storeChain.invalidate();
+      await utils.store.invalidate();
     },
     onError: (error) => {
       console.error(error);
@@ -75,7 +77,9 @@ export const StoreChainManagement: React.FC = () => {
   });
   const doDeleteStoreChain = api.storeChain.delete.useMutation({
     onSuccess: async () => {
-      await utils.storeChain.get.invalidate();
+      await utils.storeChain.invalidate();
+      await utils.store.invalidate();
+      await utils.product.invalidate();
     },
     onError: (error) => {
       console.error(error);
@@ -84,7 +88,8 @@ export const StoreChainManagement: React.FC = () => {
 
   const doCreateStore = api.store.create.useMutation({
     onSuccess: async () => {
-      await utils.store.getByStoreChainId.invalidate();
+      await utils.store.invalidate();
+      await utils.product.invalidate();
     },
     onError: (error) => {
       console.error(error);
@@ -92,7 +97,8 @@ export const StoreChainManagement: React.FC = () => {
   });
   const doEditStore = api.store.update.useMutation({
     onSuccess: async () => {
-      await utils.store.getByStoreChainId.invalidate();
+      await utils.store.invalidate();
+      await utils.product.invalidate();
     },
     onError: (error) => {
       console.error(error);
@@ -100,7 +106,8 @@ export const StoreChainManagement: React.FC = () => {
   });
   const doDeleteStore = api.store.delete.useMutation({
     onSuccess: async () => {
-      await utils.store.getByStoreChainId.invalidate();
+      await utils.store.invalidate();
+      await utils.product.invalidate();
     },
     onError: (error) => {
       console.error(error);
