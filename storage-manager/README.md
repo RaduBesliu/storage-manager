@@ -261,6 +261,38 @@ The database used is [PostgreSQL](https://www.postgresql.org).
 1. Access the platform in your browser at `http://localhost:3000`.
 2. Log in with your user credentials to explore and use the features based on your assigned role.
 
+## Contributors
+
+Francisca:
+
+- project requirements
+- user stories
+- diagrams: UseCase, Reports Management
+
+Alex:
+
+- implementation: 60%
+- design patterns
+- diagrams: Overview, Workflow, Package
+
+Carol:
+
+- implementation: 40%
+- general database diagram
+
+Radu:
+
+- diagrams: Stock Management, Product Management, Promotions
+- database diagrams: Application User, Store Management, Placing an order
+- presentation
+
+Ilinca:
+
+- Functional / Non-functional requirements
+- diagrams: Authentication
+- database diagrams: Product Management, Applying Promotions
+- presentation
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
