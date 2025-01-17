@@ -34,8 +34,8 @@ export const stockRouter = createTRPCRouter({
         category: item.category,
         quantity: item.quantity,
         price: item.price,
-        storeName: item.Store?.name || "-",
-        storeChainName: item.Store?.StoreChain?.name || "-",
+        storeName: item.Store?.name ?? "-",
+        storeChainName: item.Store?.StoreChain?.name ?? "-",
       }));
     }),
 });

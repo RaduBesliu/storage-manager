@@ -13,6 +13,7 @@ import {
   Modal,
   NativeSelect,
   ScrollArea,
+  Select,
   Table,
   Text,
   TextInput,
@@ -20,6 +21,7 @@ import {
 import { useForm } from "@mantine/form";
 import { api } from "~/trpc/react";
 import { Role } from "@prisma/client";
+import { signOut, useSession } from "next-auth/react";
 
 const roleColors: Record<string, string> = {
   SUPER_ADMIN: "blue",
@@ -28,12 +30,18 @@ const roleColors: Record<string, string> = {
 };
 
 export const UserManagement: React.FC = () => {
+  const session = useSession();
   const [selectedUser, setSelectedUser] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const [updateOpened, { open: openUpdate, close: closeUpdate }] =
     useDisclosure(false);
+  const [
+    confirmDeleteOpened,
+    { open: openConfirmDelete, close: closeConfirmDelete },
+  ] = useDisclosure(false);
   const utils = api.useUtils();
   const { data: users } = api.user.get.useQuery();
+  const { data: stores } = api.store.get.useQuery();
   const doCreateUser = api.user.create.useMutation({
     onSuccess: async () => {
       await utils.user.get.invalidate();
@@ -66,6 +74,7 @@ export const UserManagement: React.FC = () => {
       email: "",
       role: Role.STORE_EMPLOYEE,
       password: "",
+      storeId: null as string | null,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
@@ -80,6 +89,7 @@ export const UserManagement: React.FC = () => {
       name: "",
       email: "",
       role: Role.STORE_EMPLOYEE as Role,
+      storeId: null as string | null,
     },
     validate: {
       name: (value) => (value.length > 0 ? null : "Name is required"),
@@ -122,6 +132,7 @@ export const UserManagement: React.FC = () => {
                 name: user.name ?? "",
                 email: user.email,
                 role: user.role,
+                storeId: user.storeId ? user.storeId.toString() : null,
               });
               openUpdate();
             }}
@@ -132,7 +143,8 @@ export const UserManagement: React.FC = () => {
             variant="subtle"
             color="red"
             onClick={() => {
-              doDeleteUser.mutate({ id: user.id });
+              setSelectedUser(user.id);
+              openConfirmDelete();
             }}
           >
             <IconTrash size={16} stroke={1.5} />
@@ -195,6 +207,7 @@ export const UserManagement: React.FC = () => {
                   email: values.email,
                   role: values.role,
                   password: values.password,
+                  storeId: values.storeId ? parseInt(values.storeId) : null,
                 });
 
                 createForm.reset();
@@ -249,6 +262,18 @@ export const UserManagement: React.FC = () => {
                 {...createForm.getInputProps("role")}
               />
 
+              <Select
+                label="Store"
+                key={createForm.key("storeId")}
+                placeholder="Select store"
+                allowDeselect={true}
+                data={stores?.map((store) => ({
+                  value: store.id.toString(),
+                  label: store.name,
+                }))}
+                {...createForm.getInputProps("storeId")}
+              />
+
               <Group justify="flex-end" mt="md">
                 <Button type="submit">Submit</Button>
               </Group>
@@ -276,6 +301,7 @@ export const UserManagement: React.FC = () => {
                   name: values.name,
                   email: values.email,
                   role: values.role,
+                  storeId: values.storeId ? parseInt(values.storeId) : null,
                 });
 
                 updateForm.reset();
@@ -321,11 +347,53 @@ export const UserManagement: React.FC = () => {
                 {...updateForm.getInputProps("role")}
               />
 
+              <Select
+                label="Store"
+                key={updateForm.key("storeId")}
+                placeholder="Select store"
+                allowDeselect={true}
+                data={stores?.map((store) => ({
+                  value: store.id.toString(),
+                  label: store.name,
+                }))}
+                {...updateForm.getInputProps("storeId")}
+              />
+
               <Group justify="flex-end" mt="md">
                 <Button type="submit">Submit</Button>
               </Group>
             </Flex>
           </form>
+        </Flex>
+      </Modal>
+
+      <Modal
+        opened={confirmDeleteOpened}
+        onClose={closeConfirmDelete}
+        title="Confirm Delete"
+        size="sm"
+        centered
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+      >
+        <Flex direction="column" gap="md">
+          <Text>Are you sure you want to delete this user?</Text>
+          <Group justify="flex-end">
+            <Button
+              color="red"
+              onClick={() => {
+                doDeleteUser.mutate({ id: selectedUser });
+                if (session.data?.user?.id === selectedUser) {
+                  void signOut({ redirectTo: "/" });
+                }
+                closeConfirmDelete();
+              }}
+            >
+              Delete
+            </Button>
+          </Group>
         </Flex>
       </Modal>
     </>

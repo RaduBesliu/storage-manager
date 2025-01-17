@@ -22,6 +22,7 @@ declare module "next-auth" {
       emailVerified: Date | null;
       // ...other properties
       role: Role;
+      storeId: number | null;
     } & DefaultSession["user"];
   }
 
@@ -48,6 +49,7 @@ declare module "next-auth/jwt" {
     userEmail: string;
     userEmailVerified: Date | null;
     userRole: Role;
+    userStoreId: number | null;
   }
 }
 
@@ -83,8 +85,9 @@ export const authConfig = {
             return null;
           }
 
-          // const isValid = bcrypt.compareSync(password, user.password);
-          const isValid = password === user.password;
+          console.log("COMPARE PASSWORDS:", password, user.password);
+          const isValid = bcrypt.compareSync(password, user.password);
+          console.log("EQUAL", isValid);
 
           if (!isValid) {
             return null;
@@ -109,6 +112,7 @@ export const authConfig = {
         token.userEmail = user.email;
         token.userEmailVerified = user.emailVerified;
         token.userRole = user.role;
+        token.userStoreId = user.storeId;
       }
 
       console.log("JWT", token);
@@ -123,6 +127,7 @@ export const authConfig = {
           email: token.userEmail,
           emailVerified: token.userEmailVerified,
           role: token.userRole,
+          storeId: token.userStoreId,
         };
       }
 

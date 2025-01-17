@@ -18,8 +18,8 @@ import { usePathname } from "next/navigation";
 
 const data = [
   { link: "/products", label: "Products", icon: IconShoppingCart },
-  { link: "//alerts", label: "Alerts", icon: IconBell },
-  { link: "/", label: "Orders", icon: IconTruckDelivery },
+  { link: "/alerts", label: "Alerts", icon: IconBell },
+  { link: "/stockMonitoring", label: "Stock Monitoring", icon: IconTruckDelivery },
   { link: "/reports", label: "Reports", icon: IconReport },
 ];
 const validLinks = data.map((item) => item.link);

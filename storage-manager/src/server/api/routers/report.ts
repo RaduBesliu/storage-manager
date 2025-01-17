@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { addCurrentTimeToDate } from "~/utils/utils";
 
 export const reportRouter = createTRPCRouter({
   getSaleReport: protectedProcedure
@@ -17,8 +18,8 @@ export const reportRouter = createTRPCRouter({
         where: {
           productId: input.productId ?? undefined,
           saleDate: {
-            gte: input.startDate,
-            lte: input.endDate,
+            gte: addCurrentTimeToDate(input.startDate),
+            lte: addCurrentTimeToDate(input.endDate),
           },
           Store: {
             storeChainId: input.storeChainId ?? undefined,
@@ -47,8 +48,8 @@ export const reportRouter = createTRPCRouter({
           storeId: input.storeId ?? undefined,
           productId: input.productId ?? undefined,
           restockDate: {
-            gte: input.startDate,
-            lte: input.endDate,
+            gte: addCurrentTimeToDate(input.startDate),
+            lte: addCurrentTimeToDate(input.endDate),
           },
           Store: {
             storeChainId: input.storeChainId ?? undefined,
@@ -76,8 +77,8 @@ export const reportRouter = createTRPCRouter({
           storeId: input.storeId ?? undefined,
           productId: input.productId ?? undefined,
           returnDate: {
-            gte: input.startDate,
-            lte: input.endDate,
+            gte: addCurrentTimeToDate(input.startDate),
+            lte: addCurrentTimeToDate(input.endDate),
           },
           Store: {
             storeChainId: input.storeChainId ?? undefined,
@@ -105,8 +106,8 @@ export const reportRouter = createTRPCRouter({
           storeId: input.storeId ?? undefined,
           productId: input.productId ?? undefined,
           changeDate: {
-            gte: input.startDate,
-            lte: input.endDate,
+            gte: addCurrentTimeToDate(input.startDate),
+            lte: addCurrentTimeToDate(input.endDate),
           },
           Store: {
             storeChainId: input.storeChainId ?? undefined,
@@ -134,8 +135,8 @@ export const reportRouter = createTRPCRouter({
           storeId: input.storeId ?? undefined,
           productId: input.productId ?? undefined,
           adjustmentDate: {
-            gte: input.startDate,
-            lte: input.endDate,
+            gte: addCurrentTimeToDate(input.startDate),
+            lte: addCurrentTimeToDate(input.endDate),
           },
           Store: {
             storeChainId: input.storeChainId ?? undefined,

@@ -3,24 +3,69 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { Event } from "~/utils/types";
 
 export const productRouter = createTRPCRouter({
-  get: protectedProcedure.query(async ({ ctx }) => {
-    const products = await ctx.db.product.findMany({
-      include: {
-        Store: true,
-      },
-      orderBy: [
-        {
-          Store: {
-            id: "asc", // Sort by store name in ascending order
+  get: protectedProcedure
+    .input(
+      z.object({
+        storeId: z.number().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const products = await ctx.db.product.findMany({
+        include: {
+          Store: true,
+        },
+        where: input.storeId ? { storeId: input.storeId } : undefined,
+        orderBy: [
+          {
+            Store: {
+              id: "asc", // Sort by store name in ascending order
+            },
           },
+          {
+            name: "asc", // Sort by product name in ascending order
+          },
+        ],
+      });
+      return products;
+    }),
+
+  getInfinite: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).optional().default(10),
+        cursor: z.number().nullish(),
+        storeId: z.number().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const products = await ctx.db.product.findMany({
+        include: {
+          Store: true,
         },
-        {
-          name: "asc", // Sort by product name in ascending order
-        },
-      ],
-    });
-    return products;
-  }),
+        take: input.limit + 1, // Fetch one extra item to check if there's a next page
+        skip: input.cursor ? 1 : 0, // Skip the first item if there's a cursor
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        where: input.storeId ? { storeId: input.storeId } : undefined,
+        orderBy: [
+          {
+            Store: {
+              id: "asc", // Sort by store name in ascending order
+            },
+          },
+          {
+            name: "asc", // Sort by product name in ascending order
+          },
+        ],
+      });
+
+      let nextCursor: typeof input.cursor = undefined;
+      if (products.length > input.limit) {
+        const lastProduct = products.pop();
+        nextCursor = lastProduct?.id ?? null;
+      }
+
+      return { items: products, nextCursor };
+    }),
 
   getByStoreId: protectedProcedure
     .input(z.object({ storeId: z.number() }))

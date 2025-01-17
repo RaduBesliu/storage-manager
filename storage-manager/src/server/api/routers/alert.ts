@@ -2,24 +2,29 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { sendEmail } from "~/utils/email";
 import { db } from "~/server/db";
-const cron = require("node-cron");
+import cron from "node-cron";
 
-
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/5 * * * *", () => {
   console.log("Running stock level check...");
-  await checkStockLevels();
+  checkStockLevels()
+    .then(() => {
+      console.log("Stock level check completed successfully.");
+    })
+    .catch((error) => {
+      console.error("Error checking stock levels:", error);
+    });
 });
+
+const to = process.env.SENDER_EMAIL ?? "mops@yahoo.com";
 
 async function checkStockLevels() {
   try {
-
     const activeAlerts = await db.alert.findMany({
       where: { isActive: true },
       include: { Product: true, Store: true, StoreChain: true },
     });
 
     for (const alert of activeAlerts) {
-
       const product = await db.product.findUnique({
         where: { id: alert.productId },
       });
@@ -30,13 +35,16 @@ async function checkStockLevels() {
       }
 
       if (alert.storeId && product.storeId !== alert.storeId) {
-        console.log(`Skipping alert for product ${product.name}, storeId does not match`);
+        console.log(
+          `Skipping alert for product ${product.name}, storeId does not match`,
+        );
         continue;
       }
 
       if (product.quantity <= alert.threshold) {
         const productName = product.name;
-        const storeName = alert.Store?.name ?? alert.StoreChain?.name ?? "Unknown Store";
+        const storeName =
+          alert.Store?.name ?? alert.StoreChain?.name ?? "Unknown Store";
 
         const emailBody = `
           Stock alert triggered:
@@ -46,7 +54,8 @@ async function checkStockLevels() {
           Threshold: ${alert.threshold}
         `;
 
-        await sendEmail("mops@yahoo.com", "Stock Alert Triggered", emailBody);
+        console.log("Sending EMAIL for alert trigger to", to);
+        await sendEmail(to, "Stock Alert Triggered", emailBody);
         console.log(`Alert sent for product ${productName}`);
       }
     }
@@ -54,8 +63,6 @@ async function checkStockLevels() {
     console.error("Error checking stock levels:", error);
   }
 }
-
-
 
 export const alertRouter = createTRPCRouter({
   create: protectedProcedure
@@ -65,10 +72,10 @@ export const alertRouter = createTRPCRouter({
         storeId: z.number().optional(),
         storeChainId: z.number().optional(),
         threshold: z.number(),
-      })
+      }),
     )
-    .mutation(async ({ input }) => {
-      const alert = await db.alert.create({
+    .mutation(async ({ ctx, input }) => {
+      const alert = await ctx.db.alert.create({
         data: {
           productId: input.productId,
           storeId: input.storeId,
@@ -78,11 +85,11 @@ export const alertRouter = createTRPCRouter({
       });
       console.log("Received input for alert creation:", input);
 
-      return { alert, message: "Alert created successfully!" }; 
+      return { alert, message: "Alert created successfully!" };
     }),
 
-  getActiveAlerts: protectedProcedure.query(async () => {
-    return db.alert.findMany({
+  getActiveAlerts: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.alert.findMany({
       where: { isActive: true },
       include: {
         Product: true,
@@ -94,8 +101,8 @@ export const alertRouter = createTRPCRouter({
 
   toggleAlert: protectedProcedure
     .input(z.object({ alertId: z.number(), isActive: z.boolean() }))
-    .mutation(async ({ input }) => {
-      const alert = await db.alert.update({
+    .mutation(async ({ ctx, input }) => {
+      const alert = await ctx.db.alert.update({
         where: { id: input.alertId },
         data: { isActive: input.isActive },
         include: { Product: true, Store: true, StoreChain: true },
@@ -103,7 +110,8 @@ export const alertRouter = createTRPCRouter({
 
       if (input.isActive) {
         const productName = alert.Product.name;
-        const storeName = alert.Store?.name ?? alert.StoreChain?.name ?? "Unknown Store";
+        const storeName =
+          alert.Store?.name ?? alert.StoreChain?.name ?? "Unknown Store";
         const threshold = alert.threshold;
 
         const emailBody = `
@@ -113,17 +121,18 @@ export const alertRouter = createTRPCRouter({
           Threshold: ${threshold}
         `;
 
-        await sendEmail("mops@yahoo.com", "Stock Alert Triggered", emailBody);
+        console.log("Sending EMAIL for alert trigger to", to);
+        await sendEmail(to, "Stock Alert Triggered", emailBody);
       }
 
       const message = input.isActive
         ? "Alert activated successfully!"
         : "Alert deactivated successfully!";
-      return { alert, message }; 
+      return { alert, message };
     }),
 
-  getAlertHistory: protectedProcedure.query(async () => {
-    return db.alert.findMany({
+  getAlertHistory: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.alert.findMany({
       where: { isActive: false },
       include: { Product: true, Store: true, StoreChain: true },
       orderBy: { createdAt: "desc" },

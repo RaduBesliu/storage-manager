@@ -1,10 +1,36 @@
 import { z } from "zod";
 import * as bcrypt from "bcrypt";
-import type { Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 export const userRouter = createTRPCRouter({
+  register: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        email: z.string().min(1),
+        password: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const hashedPassword = bcrypt.hashSync(input.password, 10);
+
+      return await ctx.db.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          password: hashedPassword,
+          role: Role.STORE_EMPLOYEE,
+          storeId: null,
+        },
+      });
+    }),
+
   get: protectedProcedure.query(async ({ ctx }) => {
     const users = await ctx.db.user.findMany();
     return users;
@@ -27,6 +53,7 @@ export const userRouter = createTRPCRouter({
         email: z.string().min(1),
         role: z.custom<Role>(),
         password: z.string().min(1),
+        storeId: z.number().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -38,6 +65,8 @@ export const userRouter = createTRPCRouter({
           email: input.email,
           role: input.role,
           password: hashedPassword,
+          emailVerified: new Date(),
+          storeId: input.storeId,
         },
       });
     }),
@@ -49,6 +78,7 @@ export const userRouter = createTRPCRouter({
         name: z.string(),
         email: z.string().min(1),
         role: z.custom<Role>(),
+        storeId: z.number().nullable(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -60,6 +90,7 @@ export const userRouter = createTRPCRouter({
           name: input.name,
           email: input.email,
           role: input.role,
+          storeId: input.storeId,
         },
       });
     }),

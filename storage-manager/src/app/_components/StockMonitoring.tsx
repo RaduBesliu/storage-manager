@@ -25,14 +25,16 @@ const StockMonitoring = () => {
 
   const { data: storeChains } = api.storeChain.get.useQuery();
   const { data: stores } = api.store.get.useQuery();
-  const { data: products } = api.product.get.useQuery();
+  const { data: products } = api.product.get.useQuery({
+    storeId: undefined,
+  });
   const { data: stockData, isLoading } = api.stock.getStock.useQuery(filters, {
     enabled: !!Object.keys(filters).length,
   });
 
   const handleFilterChange = (
     key: keyof typeof filters,
-    value: string | null
+    value: string | null,
   ) => {
     setFilters((prev) => ({
       ...prev,
@@ -201,7 +203,7 @@ const StockMonitoring = () => {
                   boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
                 }}
               >
-                <Text size="lg" weight={700}>
+                <Text size="lg" fw={700}>
                   {item.productName}
                 </Text>
                 <Badge

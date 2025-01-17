@@ -65,6 +65,7 @@ model User {
   role          Role         @default(value: SUPER_ADMIN)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+  storeId       Int?
   Session       Session[]
   Account       Account[]
   Store         Store[]
@@ -78,7 +79,7 @@ model StoreChain {
   stores      Store[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdById String
   Alert       Alert[]
 }
@@ -89,7 +90,7 @@ model Store {
   location     String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  createdBy    User          @relation(fields: [createdById], references: [id])
+  createdBy    User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdById  String
   StoreChain   StoreChain?   @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
   storeChainId Int?
@@ -128,8 +129,8 @@ model Sale {
   totalPrice Float // Total sale amount (price * quantity)
   saleDate   DateTime @default(now())
   storeId    Int
-  Store      Store    @relation(fields: [storeId], references: [id])
-  Product    Product  @relation(fields: [productId], references: [id])
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Restock {
@@ -139,8 +140,8 @@ model Restock {
   restockDate DateTime @default(now())
   supplier    String? // Optional: Supplier or order reference
   storeId     Int
-  Store       Store    @relation(fields: [storeId], references: [id])
-  Product     Product  @relation(fields: [productId], references: [id])
+  Store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Return {
@@ -150,8 +151,8 @@ model Return {
   returnDate DateTime @default(now())
   reason     String? // Optional: Reason for return (e.g., damaged, wrong size)
   storeId    Int
-  Store      Store    @relation(fields: [storeId], references: [id])
-  Product    Product  @relation(fields: [productId], references: [id])
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model PriceChange {
@@ -162,8 +163,8 @@ model PriceChange {
   changeDate DateTime @default(now())
   reason     String? // Optional: Reason for price change (e.g., seasonal sale, cost increase)
   storeId    Int
-  Store      Store    @relation(fields: [storeId], references: [id])
-  Product    Product  @relation(fields: [productId], references: [id])
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Adjustment {
@@ -173,8 +174,8 @@ model Adjustment {
   adjustmentDate DateTime @default(now())
   reason         String? // Optional: Reason for adjustment (e.g., stock audit, system error)
   storeId        Int
-  Store          Store    @relation(fields: [storeId], references: [id])
-  Product        Product  @relation(fields: [productId], references: [id])
+  Store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Alert {
@@ -187,7 +188,7 @@ model Alert {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  Product    Product     @relation(fields: [productId], references: [id])
-  Store      Store?      @relation(fields: [storeId], references: [id])
-  StoreChain StoreChain? @relation(fields: [storeChainId], references: [id])
+  Product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  Store      Store?      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  StoreChain StoreChain? @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
 }

@@ -13,6 +13,7 @@ import {
 export const SearchableSelect = ({
   data,
   placeholder,
+  readOnlyValue,
   onSubmit,
 }: {
   data: {
@@ -22,6 +23,7 @@ export const SearchableSelect = ({
     storeChainName?: string;
   }[];
   placeholder?: string;
+  readOnlyValue?: string;
   onSubmit: (key: string) => void; // Adjusted to submit the key
 }) => {
   const combobox = useCombobox({
@@ -58,7 +60,9 @@ export const SearchableSelect = ({
     </Combobox.Option>
   ));
 
-  return (
+  return readOnlyValue ? (
+    <InputBase value={readOnlyValue} disabled={true} />
+  ) : (
     <Combobox
       store={combobox}
       withinPortal={false}
