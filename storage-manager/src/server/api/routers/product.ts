@@ -138,14 +138,14 @@ export const productRouter = createTRPCRouter({
         });
       }
 
-      if (product?.quantity < input.quantity) {
+      if (product?.quantity > input.quantity) {
         // sale or adjustment
         if (input.operationType === Event.SALE) {
           await ctx.db.sale.create({
             data: {
               productId: input.id,
               quantity: input.quantity - product.quantity,
-              totalPrice: (input.quantity - product.quantity) * product.price,
+              totalPrice: (product.quantity - input.quantity) * product.price,
               storeId: input.storeId,
             },
           });
@@ -153,28 +153,37 @@ export const productRouter = createTRPCRouter({
           await ctx.db.adjustment.create({
             data: {
               productId: input.id,
-              quantity: product.quantity - input.quantity,
+              quantity: input.quantity - product.quantity,
               reason: input.details,
               storeId: input.storeId,
             },
           });
         }
-      } else if (product?.quantity > input.quantity) {
+      } else if (product?.quantity < input.quantity) {
         // return or restock
         if (input.operationType === Event.RESTOCK) {
           await ctx.db.restock.create({
             data: {
               productId: input.id,
-              quantity: product.quantity - input.quantity,
+              quantity: input.quantity - product.quantity,
               storeId: input.storeId,
               supplier: input.details,
             },
           });
-        } else {
+        } else if (input.operationType === Event.RETURN) {
           await ctx.db.return.create({
             data: {
               productId: input.id,
-              quantity: product.quantity - input.quantity,
+              quantity: input.quantity - product.quantity,
+              reason: input.details,
+              storeId: input.storeId,
+            },
+          });
+        } else {
+          await ctx.db.adjustment.create({
+            data: {
+              productId: input.id,
+              quantity: input.quantity - product.quantity,
               reason: input.details,
               storeId: input.storeId,
             },
