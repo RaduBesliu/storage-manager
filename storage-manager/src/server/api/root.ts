@@ -4,6 +4,8 @@ import { storeChainRouter } from "~/server/api/routers/storeChain";
 import { userRouter } from "~/server/api/routers/user";
 import { reportRouter } from "~/server/api/routers/report";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { stockRouter } from "./routers/stock";
+import { alertRouter } from "./routers/alert";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +18,8 @@ export const appRouter = createTRPCRouter({
   storeChain: storeChainRouter,
   user: userRouter,
   report: reportRouter,
+  stock: stockRouter,
+  alert: alertRouter,
 });
 
 // export type definition of API

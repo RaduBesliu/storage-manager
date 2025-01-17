@@ -2,175 +2,193 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+  // Further reading:
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+  url      = env("DATABASE_URL")
 }
 
 // Necessary for Next auth
 model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? // @db.Text
+  access_token             String? // @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? // @db.Text
+  session_state            String?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refresh_token_expires_in Int?
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
-    SUPER_ADMIN
-    STORE_ADMIN
-    STORE_EMPLOYEE
+  SUPER_ADMIN
+  STORE_ADMIN
+  STORE_EMPLOYEE
 }
 
 model User {
-    id            String       @id @default(cuid())
-    name          String?
-    email         String       @unique
-    emailVerified DateTime?
-    password      String
-    role          Role         @default(value: SUPER_ADMIN)
-    createdAt     DateTime     @default(now())
-    updatedAt     DateTime     @updatedAt
-    storeId       Int?
-    Session       Session[]
-    Account       Account[]
-    Store         Store[]
-    StoreChain    StoreChain[]
+  id            String       @id @default(cuid())
+  name          String?
+  email         String       @unique
+  emailVerified DateTime?
+  password      String
+  role          Role         @default(value: SUPER_ADMIN)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  storeId       Int?
+  Session       Session[]
+  Account       Account[]
+  Store         Store[]
+  StoreChain    StoreChain[]
 }
 
 model StoreChain {
-    id          Int      @id @default(autoincrement())
-    name        String
-    location    String
-    stores      Store[]
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
-    createdById String
+  id          Int      @id @default(autoincrement())
+  name        String
+  location    String
+  stores      Store[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String
+  Alert       Alert[]
 }
 
 model Store {
-    id           Int           @id @default(autoincrement())
-    name         String
-    location     String
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
-    createdBy    User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
-    createdById  String
-    StoreChain   StoreChain?   @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
-    storeChainId Int?
-    Product      Product[]
-    Sale         Sale[]
-    Restock      Restock[]
-    Return       Return[]
-    PriceChange  PriceChange[]
-    Adjustment   Adjustment[]
+  id           Int           @id @default(autoincrement())
+  name         String
+  location     String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    User          @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById  String
+  StoreChain   StoreChain?   @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
+  storeChainId Int?
+  Product      Product[]
+  Sale         Sale[]
+  Restock      Restock[]
+  Return       Return[]
+  PriceChange  PriceChange[]
+  Adjustment   Adjustment[]
+  Alert        Alert[]
 }
 
 model Product {
-    id          Int           @id @default(autoincrement())
-    name        String
-    category    String
-    description String
-    price       Float
-    quantity    Int
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    Store       Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    storeId     Int
-    Sale        Sale[]
-    Restock     Restock[]
-    Return      Return[]
-    PriceChange PriceChange[]
-    Adjustment  Adjustment[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  category    String
+  description String
+  price       Float
+  quantity    Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Store       Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId     Int
+  Sale        Sale[]
+  Restock     Restock[]
+  Return      Return[]
+  PriceChange PriceChange[]
+  Adjustment  Adjustment[]
+  Alert       Alert[]
 }
 
 model Sale {
-    id         Int      @id @default(autoincrement())
-    productId  Int
-    quantity   Int // Quantity sold
-    totalPrice Float // Total sale amount (price * quantity)
-    saleDate   DateTime @default(now())
-    storeId    Int
-    Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  quantity   Int // Quantity sold
+  totalPrice Float // Total sale amount (price * quantity)
+  saleDate   DateTime @default(now())
+  storeId    Int
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Restock {
-    id          Int      @id @default(autoincrement())
-    productId   Int
-    quantity    Int // Quantity added to inventory
-    restockDate DateTime @default(now())
-    supplier    String? // Optional: Supplier or order reference
-    storeId     Int
-    Store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    Product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  quantity    Int // Quantity added to inventory
+  restockDate DateTime @default(now())
+  supplier    String? // Optional: Supplier or order reference
+  storeId     Int
+  Store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Return {
-    id         Int      @id @default(autoincrement())
-    productId  Int
-    quantity   Int // Quantity returned
-    returnDate DateTime @default(now())
-    reason     String? // Optional: Reason for return (e.g., damaged, wrong size)
-    storeId    Int
-    Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  quantity   Int // Quantity returned
+  returnDate DateTime @default(now())
+  reason     String? // Optional: Reason for return (e.g., damaged, wrong size)
+  storeId    Int
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model PriceChange {
-    id         Int      @id @default(autoincrement())
-    productId  Int
-    oldPrice   Float // Previous price before change
-    newPrice   Float // New price after change
-    changeDate DateTime @default(now())
-    reason     String? // Optional: Reason for price change (e.g., seasonal sale, cost increase)
-    storeId    Int
-    Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  oldPrice   Float // Previous price before change
+  newPrice   Float // New price after change
+  changeDate DateTime @default(now())
+  reason     String? // Optional: Reason for price change (e.g., seasonal sale, cost increase)
+  storeId    Int
+  Store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Adjustment {
-    id             Int      @id @default(autoincrement())
-    productId      Int
-    quantity       Int // Quantity adjustment (can be positive or negative)
-    adjustmentDate DateTime @default(now())
-    reason         String? // Optional: Reason for adjustment (e.g., stock audit, system error)
-    storeId        Int
-    Store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-    Product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id             Int      @id @default(autoincrement())
+  productId      Int
+  quantity       Int // Quantity adjustment (can be positive or negative)
+  adjustmentDate DateTime @default(now())
+  reason         String? // Optional: Reason for adjustment (e.g., stock audit, system error)
+  storeId        Int
+  Store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  Product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  storeId      Int?
+  storeChainId Int?
+  threshold    Int // Pragul de alertă
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  Product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  Store      Store?      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  StoreChain StoreChain? @relation(fields: [storeChainId], references: [id], onDelete: Cascade)
 }
