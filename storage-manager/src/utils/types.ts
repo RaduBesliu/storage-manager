@@ -1,9 +1,15 @@
+import type { Alert, Product } from "@prisma/client";
+
 export enum Event {
   SALE = "Sale",
   RESTOCK = "Restock",
   RETURN = "Return",
   PRICE_CHANGE = "Price Change",
   ADJUSTMENT = "Adjustment",
+  LOW_STOCK_ALERTS = "Low Stock Alerts",
+  SALES_REVENUE_TRENDS = "Sales Revenue Trends",
+  PRICE_CHANGE_IMPACT = "Price Change Impact",
+  PRODUCT_RETURN_RATES = "Product Return Rates",
 }
 
 export type ReportFilters = {
@@ -89,4 +95,35 @@ export type AdjustmentReport = {
     name: string;
     location: string;
   };
+};
+
+export type LowStockAlertReport = Record<
+  string,
+  (Alert & { Product: Product })[]
+>;
+
+export type SalesRevenueTrendReport = {
+  saleDate: Date;
+  _sum: {
+    totalPrice: number | null;
+  };
+  Store?: {
+    id: number;
+    name: string;
+  };
+};
+
+export type PriceChangeImpactReport = {
+  reason: string | null;
+  _count: {
+    _all: number;
+  };
+};
+
+export type ProductReturnRateReport = {
+  productId: number;
+  returnRate: number;
+  totalSold: number;
+  productName: string;
+  returnedQuantity: number;
 };

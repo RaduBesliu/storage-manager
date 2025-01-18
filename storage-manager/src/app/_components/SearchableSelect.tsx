@@ -8,12 +8,15 @@ import {
   ScrollArea,
   useCombobox,
   Text,
+  ActionIcon,
 } from "@mantine/core";
+import { X } from "tabler-icons-react";
 
 export const SearchableSelect = ({
   data,
   placeholder,
   readOnlyValue,
+  allowClear,
   onSubmit,
 }: {
   data: {
@@ -24,6 +27,7 @@ export const SearchableSelect = ({
   }[];
   placeholder?: string;
   readOnlyValue?: string;
+  allowClear?: boolean;
   onSubmit: (key: string) => void; // Adjusted to submit the key
 }) => {
   const combobox = useCombobox({
@@ -77,7 +81,25 @@ export const SearchableSelect = ({
     >
       <Combobox.Target>
         <InputBase
-          rightSection={<Combobox.Chevron />}
+          rightSectionPointerEvents={allowClear ? "all" : "none"}
+          rightSection={
+            <>
+              {allowClear && search ? (
+                <ActionIcon
+                  variant="transparent"
+                  onClick={() => {
+                    setSearch("");
+                    combobox.closeDropdown();
+                    onSubmit(""); // Clear the selection
+                  }}
+                >
+                  <X size={16} />
+                </ActionIcon>
+              ) : (
+                <Combobox.Chevron />
+              )}
+            </>
+          }
           value={search}
           onChange={(event) => {
             const value = event.currentTarget.value;
@@ -92,7 +114,6 @@ export const SearchableSelect = ({
             setSearch(search || "");
           }}
           placeholder={placeholder ?? "Search value"}
-          rightSectionPointerEvents="none"
         />
       </Combobox.Target>
 

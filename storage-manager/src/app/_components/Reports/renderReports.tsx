@@ -10,14 +10,30 @@ import {
   BarChart,
   Bar,
   ReferenceLine,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  ScatterChart,
+  Scatter,
+  Cell,
 } from "recharts";
 import { format } from "date-fns";
 import type {
   AdjustmentReport,
+  LowStockAlertReport,
+  PriceChangeImpactReport,
   PriceChangeReport,
+  ProductReturnRateReport,
   RestockReport,
   ReturnReport,
   SaleReport,
+  SalesRevenueTrendReport,
 } from "~/utils/types";
 
 export const renderSaleReport = (saleReport: SaleReport[]) => {
@@ -69,7 +85,11 @@ export const renderSaleReport = (saleReport: SaleReport[]) => {
             return null;
           }}
         />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <Line
           type="monotone"
           dataKey="totalPrice"
@@ -131,7 +151,11 @@ export const renderRestockReport = (restockReport: RestockReport[]) => {
             return null;
           }}
         />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <Bar
           dataKey="quantity"
           name="Quantity Restocked"
@@ -190,7 +214,11 @@ export const renderReturnReport = (returnReport: ReturnReport[]) => {
             return null;
           }}
         />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <Bar
           dataKey="quantity"
           name="Quantity Returned"
@@ -253,7 +281,11 @@ export const renderPriceChangeReport = (
             return null;
           }}
         />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <Line
           type="monotone"
           dataKey="newPrice"
@@ -317,7 +349,11 @@ export const renderAdjustmentReport = (
             return null;
           }}
         />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <ReferenceLine y={0} stroke="#000" />
         <Bar
           dataKey="quantity"
@@ -326,6 +362,257 @@ export const renderAdjustmentReport = (
           barSize={40}
         />
       </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+// New charts
+
+export const renderLowStockAlertsReport = (
+  lowStockAlertsReport: LowStockAlertReport,
+) => {
+  const chartData = Object.entries(lowStockAlertsReport).map(
+    ([category, alerts]) => ({
+      category,
+      count: alerts.length,
+    }),
+  );
+
+  return (
+    <ResponsiveContainer width="100%" height={600} className="px-2 py-4">
+      <RadarChart data={chartData}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey="category" tick={{ fontSize: 12 }} />
+        <PolarRadiusAxis angle={30} domain={[0, "auto"]} />
+        <Radar
+          name="Low Stock Alerts"
+          dataKey="count"
+          stroke="#8884d8"
+          fill="#8884d8"
+          fillOpacity={0.6}
+        />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
+        <Tooltip
+          content={({ active, payload }) => {
+            if (active && payload?.length) {
+              const data = payload[0]?.payload;
+              return (
+                <div
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <p>
+                    <strong>{data.category}</strong>
+                  </p>
+                  <p>Low Stock Alerts: {data.count}</p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const renderSalesRevenueTrendsReports = (
+  salesRevenueTrendsReport: SalesRevenueTrendReport[],
+) => {
+  const chartData = salesRevenueTrendsReport.map((item) => ({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    saleDate: format(new Date(item.saleDate), "MMM dd, yyyy"),
+    totalPrice: item._sum.totalPrice,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={600} className="px-2 py-4">
+      <AreaChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="saleDate" tick={{ fontSize: 12 }} />
+        <YAxis
+          tick={{ fontSize: 12 }}
+          label={{
+            value: "Total Revenue (RON)",
+            angle: -90,
+            position: "insideLeft",
+            fontSize: 14,
+            offset: -20,
+          }}
+          domain={["auto", "auto"]}
+        />
+        <Tooltip
+          content={({ active, payload }) => {
+            if (active && payload?.length) {
+              const data = payload[0]?.payload;
+              return (
+                <div
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <p>
+                    <strong>{data.saleDate}</strong>
+                  </p>
+                  <p>Total Revenue: {data.totalPrice.toFixed(2)} RON</p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
+        <Area
+          type="monotone"
+          dataKey="totalPrice"
+          name="Total Revenue (RON)"
+          stroke="#82ca9d"
+          fill="#82ca9d"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const renderPriceChangeImpactReport = (
+  priceChangeImpactReport: PriceChangeImpactReport[],
+) => {
+  const chartData = priceChangeImpactReport.map((item) => ({
+    reason: item.reason ?? "Unknown",
+    count: item._count._all,
+  }));
+
+  if (chartData.length === 1) {
+    chartData.push({ reason: "Other", count: 10 });
+  }
+
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#AF19FF",
+    "#FF1919",
+    "#19FF19",
+    "#1919FF",
+    "#FF19FF",
+    "#19FFFF",
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={600} className="px-2 py-4">
+      <PieChart>
+        <Pie
+          data={chartData}
+          dataKey="count"
+          nameKey="reason"
+          cx="50%"
+          cy="50%"
+          outerRadius={150}
+          fill="#8884d8"
+          label={(entry) => `${entry.reason}: ${entry.count}`}
+        >
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const renderProductReturnRatesReport = (
+  productReturnRatesReport: ProductReturnRateReport[],
+) => {
+  const chartData = productReturnRatesReport.map((item) => ({
+    productId: item.productId,
+    returnRate: item.returnRate,
+    totalSold: item.totalSold,
+    productName: item.productName,
+    returnedQuantity: item.returnedQuantity,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={600} className="px-2 py-4">
+      <ScatterChart>
+        <CartesianGrid />
+        <XAxis
+          type="number"
+          dataKey="totalSold"
+          name="Total Sold"
+          tick={{ fontSize: 12 }}
+          label={{
+            value: "Total Sold",
+            position: "insideBottom",
+            fontSize: 14,
+            offset: -5,
+          }}
+        />
+        <YAxis
+          type="number"
+          dataKey="returnRate"
+          name="Return Rate"
+          tick={{ fontSize: 12 }}
+          label={{
+            value: "Return Rate",
+            angle: -90,
+            position: "insideLeft",
+            fontSize: 14,
+            offset: -20,
+          }}
+          domain={["auto", "auto"]}
+        />
+        <Tooltip
+          cursor={{ strokeDasharray: "3 3" }}
+          content={({ active, payload }) => {
+            if (active && payload?.length) {
+              const data = payload[0]?.payload;
+              return (
+                <div
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <p>
+                    <strong>Product Name: {data.productName}</strong>
+                  </p>
+                  <p>Return Rate: {(data.returnRate * 100).toFixed(2)}%</p>
+                  <p>Total Sold: {data.totalSold}</p>
+                  <p>Returned Quantity: {data.returnedQuantity}</p>
+                </div>
+              );
+            }
+            return null;
+          }}
+        />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
+        <Scatter name="Return Rates" data={chartData} fill="#82ca9d" />
+      </ScatterChart>
     </ResponsiveContainer>
   );
 };
