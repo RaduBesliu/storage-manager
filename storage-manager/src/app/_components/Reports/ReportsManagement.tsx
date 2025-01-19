@@ -61,7 +61,10 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
     filters.eventType === Event.LOW_STOCK_ALERTS ||
     filters.eventType === Event.SALES_REVENUE_TRENDS ||
     filters.eventType === Event.PRICE_CHANGE_IMPACT ||
-    filters.eventType === Event.PRODUCT_RETURN_RATES;
+    filters.eventType === Event.PRODUCT_RETURN_RATES ||
+    filters.eventType === Event.RADIAL_BAR_CHART ||
+    filters.eventType === Event.TREEMAP ||
+    filters.eventType === Event.PIE_CHART;
 
   const generateDisabled =
     !eventWasSelected ||

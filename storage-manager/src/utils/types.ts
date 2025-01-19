@@ -10,6 +10,10 @@ export enum Event {
   SALES_REVENUE_TRENDS = "Sales Revenue Trends",
   PRICE_CHANGE_IMPACT = "Price Change Impact",
   PRODUCT_RETURN_RATES = "Product Return Rates",
+  RADIAL_BAR_CHART = "Radial Bar Chart",
+  TREEMAP = "Treemap",
+  PIE_CHART = "Pie Chart",
+  COMPOSED_CHART = "Composed Chart"
 }
 
 export type ReportFilters = {
@@ -126,4 +130,30 @@ export type ProductReturnRateReport = {
   totalSold: number;
   productName: string;
   returnedQuantity: number;
+};
+
+export type RadialBarReport = {
+  name: string;
+  uv: number;
+  pv: number; 
+  fill: string; 
+};
+
+export type TreemapData = {
+  name: string;
+  size: number;
+};
+
+export type PieChartData = {
+  name: string;
+  value: number;
+  children?: { name: string; value: number }[];
+};
+
+export type CombinedChartData = {
+  name: string; 
+  totalRevenue?: number; 
+  quantitySold?: number; 
+  returns?: number; 
+  priceChange?: number; 
 };

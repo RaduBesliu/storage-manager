@@ -22,6 +22,10 @@ import {
   ScatterChart,
   Scatter,
   Cell,
+  RadialBarChart,
+  RadialBar,
+  Treemap,
+  ComposedChart,
 } from "recharts";
 import { format } from "date-fns";
 import type {
@@ -613,6 +617,266 @@ export const renderProductReturnRatesReport = (
         />
         <Scatter name="Return Rates" data={chartData} fill="#82ca9d" />
       </ScatterChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const renderRadialBarChart = (
+  data: { productName: string; quantitySold: number }[],
+) => {
+  const COLORS = [
+    "#8884d8",
+    "#83a6ed",
+    "#8dd1e1",
+    "#82ca9d",
+    "#a4de6c",
+    "#d0ed57",
+    "#ffc658",
+    "#ff8042",
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <RadialBarChart
+        cx="50%"
+        cy="50%"
+        innerRadius="10%"
+        outerRadius="80%"
+        barSize={50}
+        data={data.map((item) => ({
+          name: item.productName,
+          uv: item.quantitySold,
+        }))}
+      >
+        <RadialBar
+          dataKey="uv"
+          background={{ fill: "#eee" }}
+          label={{ position: "insideStart", fill: "#fff", fontSize: 12 }}
+        >
+          {data.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </RadialBar>
+        <Legend
+          iconSize={10}
+          layout="vertical"
+          verticalAlign="middle"
+          wrapperStyle={{
+            top: "50%",
+            right: 20,
+            transform: "translate(0, -50%)",
+          }}
+        />
+      </RadialBarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export const renderTreemap = (data: { name: string; size: number }[]) => {
+  const CustomizedContent: React.FC = (props: any) => {
+    const { x, y, width, height, name, size } = props;
+
+    return (
+      <g>
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          style={{
+            fill: "#8884d8",
+            stroke: "#fff",
+            strokeWidth: 2,
+          }}
+        />
+        {width > 40 && height > 20 && (
+          <>
+            <text
+              x={x + width / 2}
+              y={y + height / 2 - 5}
+              textAnchor="middle"
+              fill="#fff"
+              fontSize={14}
+              fontWeight="bold"
+            >
+              {name}
+            </text>
+            <text
+              x={x + width / 2}
+              y={y + height / 2 + 15}
+              textAnchor="middle"
+              fill="#fff"
+              fontSize={12}
+            >
+              {size ? `${size.toFixed(2)} RON` : "N/A"}
+            </text>
+          </>
+        )}
+      </g>
+    );
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <Treemap
+        data={data}
+        dataKey="size"
+        nameKey="name"
+        stroke="#fff"
+        fill="#8884d8"
+        content={<CustomizedContent />}
+      />
+    </ResponsiveContainer>
+  );
+};
+
+export const renderPieChart = (
+  innerData: any[] | undefined,
+  outerData: any[] | undefined,
+) => {
+  const COLORS = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#d0ed57",
+    "#8dd1e1",
+    "#a4de6c",
+    "#ff8042",
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <PieChart>
+        <Legend
+          payload={
+            innerData?.map((entry, index) => ({
+              value: entry.name,
+              type: "square",
+              color: COLORS[index % COLORS.length],
+            })) ?? []
+          }
+          layout="vertical"
+          align="right"
+          verticalAlign="middle"
+          wrapperStyle={{
+            top: "50%",
+            right: 20,
+            transform: "translate(0, -50%)",
+          }}
+        />
+
+        {innerData && innerData.length > 0 && (
+          <Pie
+            data={innerData}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            outerRadius={60}
+            fill="#8884d8"
+          >
+            {innerData.map((entry, index) => (
+              <Cell
+                key={`cell-inner-${entry.name}-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+        )}
+
+        {outerData && outerData.length > 0 && (
+          <Pie
+            data={outerData}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            innerRadius={70}
+            outerRadius={90}
+            fill="#82ca9d"
+            label={({ name, value }) => `${name}: ${value}`}
+          >
+            {outerData.map((entry, index) => (
+              <Cell
+                key={`cell-outer-${entry.name}-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+        )}
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
+const aggregateData = (data: any[]) => {
+  const aggregatedMap = data.reduce((acc, item) => {
+    if (!acc[item.name]) {
+      acc[item.name] = { ...item };
+    } else {
+      acc[item.name].totalRevenue += item.totalRevenue;
+      acc[item.name].quantitySold += item.quantitySold;
+      acc[item.name].returns += item.returns;
+      acc[item.name].priceChange += item.priceChange;
+    }
+    return acc;
+  }, {});
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return Object.values(aggregatedMap);
+};
+
+export const renderComposedChart = (data: any[]) => {
+  const aggregatedData = aggregateData(data);
+
+  return (
+    <ResponsiveContainer width="100%" height={600}>
+      <ComposedChart
+        data={aggregatedData}
+        margin={{
+          top: 20,
+          right: 20,
+          bottom: 20,
+          left: 20,
+        }}
+      >
+        <CartesianGrid stroke="#f5f5f5" />
+        <XAxis
+          dataKey="name"
+          scale="band"
+          tick={{ fontSize: 12 }}
+          label={{
+            value: "Date",
+            position: "insideBottom",
+            offset: -5,
+          }}
+        />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
+        <Area
+          type="monotone"
+          dataKey="totalRevenue"
+          fill="#8884d8"
+          stroke="#8884d8"
+          name="Total Revenue"
+        />
+        <Bar
+          dataKey="quantitySold"
+          barSize={20}
+          fill="#413ea0"
+          name="Quantity Sold"
+        />
+        <Line
+          type="monotone"
+          dataKey="priceChange"
+          stroke="#ff7300"
+          name="Price Change"
+        />
+        <Scatter dataKey="returns" fill="red" name="Returns" />
+      </ComposedChart>
     </ResponsiveContainer>
   );
 };

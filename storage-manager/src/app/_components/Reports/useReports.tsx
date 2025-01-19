@@ -12,6 +12,10 @@ import {
   renderSalesRevenueTrendsReports,
   renderPriceChangeImpactReport,
   renderProductReturnRatesReport,
+  renderRadialBarChart,
+  renderTreemap,
+  renderPieChart,
+  renderComposedChart,
 } from "./renderReports";
 
 export const useReports = (filters?: ReportFilters) => {
@@ -84,6 +88,78 @@ export const useReports = (filters?: ReportFilters) => {
     enabled:
       !!queryFilters && queryFilters.eventType === Event.PRODUCT_RETURN_RATES,
   });
+
+  const { data: radialBarData, isLoading: radialBarIsLoading } =
+    api.report.getRadialBarData.useQuery(
+      {
+        storeId: queryFilters?.storeId ?? null,
+        storeChainId: queryFilters?.storeChainId ?? null,
+        startDate: queryFilters?.startDate || new Date(),
+        endDate: queryFilters?.endDate || new Date(),
+      },
+      {
+        enabled:
+          !!queryFilters &&
+          queryFilters.eventType === Event.RADIAL_BAR_CHART &&
+          !!queryFilters.startDate &&
+          !!queryFilters.endDate,
+      },
+    );
+
+  const { data: treemapData, isLoading: treemapIsLoading } =
+    api.report.getTreemapData.useQuery(
+      {
+        storeId: queryFilters?.storeId ?? null,
+        storeChainId: queryFilters?.storeChainId ?? null,
+        startDate: queryFilters?.startDate || new Date(),
+        endDate: queryFilters?.endDate || new Date(),
+      },
+      {
+        enabled:
+          !!queryFilters &&
+          queryFilters.eventType === Event.TREEMAP &&
+          !!queryFilters.startDate &&
+          !!queryFilters.endDate,
+      },
+    );
+
+  const { data: pieChartData, isLoading } = api.report.getPieChartData.useQuery(
+    {
+      storeId: queryFilters?.storeId ?? null,
+      storeChainId: queryFilters?.storeChainId ?? null,
+      startDate: queryFilters?.startDate ?? new Date(),
+      endDate: queryFilters?.endDate ?? new Date(),
+    },
+    {
+      enabled: !!queryFilters,
+    },
+  );
+  const innerData = pieChartData?.map((category) => ({
+    name: category.name,
+    value: category.value,
+  }));
+
+  const outerData = pieChartData
+    ?.flatMap((category) =>
+      category.children.map((product) => ({
+        name: product.name,
+        value: product.value,
+      })),
+    )
+    .filter((item) => item.value > 0);
+
+  const { data: composedChartData, isLoading: composedChartIsLoading } =
+    api.report.getComposedChartData.useQuery(
+      {
+        storeId: queryFilters?.storeId ?? null,
+        storeChainId: queryFilters?.storeChainId ?? null,
+        startDate: queryFilters?.startDate || new Date(),
+        endDate: queryFilters?.endDate || new Date(),
+      },
+      {
+        enabled: !!queryFilters,
+      },
+    );
 
   console.group("Reports");
   console.log("Low Stock Alerts", lowStockAlertsReport);
@@ -232,6 +308,62 @@ export const useReports = (filters?: ReportFilters) => {
             </div>
           );
 
+        case Event.RADIAL_BAR_CHART:
+          return radialBarIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : radialBarData && radialBarData.length > 0 ? (
+            renderRadialBarChart(radialBarData)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No radial bar data found for the selected range.
+            </div>
+          );
+
+        case Event.TREEMAP:
+          return treemapIsLoading ? (
+            <LoadingOverlay visible={true} />
+          ) : treemapData && treemapData.length > 0 ? (
+            renderTreemap(treemapData)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No data found for the selected store and date range.
+            </div>
+          );
+
+        case Event.PIE_CHART:
+          return isLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : innerData && outerData && innerData.length > 0 ? (
+            renderPieChart(innerData, outerData)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No data found for selected range.
+            </div>
+          );
+
+        case Event.COMPOSED_CHART:
+          return composedChartIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : composedChartData && composedChartData.length > 0 ? (
+            renderComposedChart(composedChartData)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No data found for the selected range.
+            </div>
+          );
+
         default:
           return null;
       }
@@ -255,6 +387,15 @@ export const useReports = (filters?: ReportFilters) => {
       priceChangeImpactReport,
       productReturnRatesIsLoading,
       productReturnRatesReport,
+      radialBarIsLoading,
+      radialBarData,
+      treemapData,
+      treemapIsLoading,
+      isLoading,
+      innerData,
+      outerData,
+      composedChartIsLoading,
+      composedChartData,
     ],
   );
 
