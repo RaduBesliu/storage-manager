@@ -8,7 +8,15 @@ import { api } from "~/trpc/react";
 import { SearchableSelect } from "../SearchableSelect";
 import { useSession } from "next-auth/react";
 import { Role } from "@prisma/client";
-import { Badge, Button, Flex, Modal, Title, Text } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Flex,
+  Modal,
+  Title,
+  Text,
+  NativeSelect,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { format } from "date-fns";
 import type { ReportFilters, DisplayReportFilters } from "~/utils/types";
@@ -49,24 +57,40 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
     },
   });
 
+  const noProductEvent =
+    filters.eventType === Event.LOW_STOCK_ALERTS ||
+    filters.eventType === Event.SALES_REVENUE_TRENDS ||
+    filters.eventType === Event.PRICE_CHANGE_IMPACT ||
+    filters.eventType === Event.PRODUCT_RETURN_RATES;
+
+  const generateDisabled =
+    !eventWasSelected ||
+    (noProductEvent
+      ? filters.storeId === null && filters.storeChainId === null
+      : filters.productId === null ||
+        filters.storeId === null ||
+        filters.eventType === null);
+
   return (
     <div className="mx-auto flex flex-col gap-4">
       <div className="mx-2 mb-16 flex flex-wrap justify-center">
         <Title c="white">Report generation</Title>
       </div>
       <div className="mx-2 flex flex-wrap justify-center gap-2">
-        <SearchableSelect
+        <NativeSelect
           data={
             Object.values(Event).map((event) => ({
-              key: event as string,
               value: event as string,
+              label: event as string,
             })) ?? []
           }
-          onSubmit={(val) => {
+          onChange={(event) => {
             setEventWasSelected(true);
-            setFilters({ ...filters, eventType: val as Event });
+            setFilters({
+              ...filters,
+              eventType: event.currentTarget.value as Event,
+            });
           }}
-          placeholder="Search Event Type"
         />
         <DatePickerInput
           type="range"
@@ -97,6 +121,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                   storeChainId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Store Chain"
             />
             <SearchableSelect
@@ -127,6 +152,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                   storeId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Store"
             />
             <SearchableSelect
@@ -149,12 +175,14 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                       )?.name,
                     }))) ?? []
               }
+              readOnlyValue={noProductEvent ? "-" : undefined}
               onSubmit={(val) =>
                 setFilters({
                   ...filters,
                   productId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Product"
             />
           </>
@@ -180,6 +208,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                   storeChainId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Store Chain"
             />
             <SearchableSelect
@@ -204,6 +233,7 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                   storeId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Store"
             />
             <SearchableSelect
@@ -226,24 +256,21 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({ onGenerate }) => {
                       )?.name,
                     }))) ?? []
               }
+              readOnlyValue={noProductEvent ? "-" : undefined}
               onSubmit={(val) =>
                 setFilters({
                   ...filters,
                   productId: val ? parseInt(val) : null,
                 })
               }
+              allowClear
               placeholder="Search Product"
             />
           </>
         )}
         <Button
           color="teal"
-          disabled={
-            !eventWasSelected ||
-            filters.productId === null ||
-            filters.storeId === null ||
-            filters.eventType === null
-          }
+          disabled={generateDisabled}
           onClick={() => {
             onGenerate(filters, {
               eventType: filters.eventType,

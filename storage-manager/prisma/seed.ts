@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcrypt";
+import { randomInt } from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -12,13 +13,14 @@ async function main() {
   await prisma.return.deleteMany();
   await prisma.priceChange.deleteMany();
   await prisma.adjustment.deleteMany();
+  await prisma.alert.deleteMany();
 
   await prisma.product.deleteMany();
   await prisma.store.deleteMany();
   await prisma.storeChain.deleteMany();
   await prisma.user.deleteMany();
 
-  await prisma.$executeRaw`TRUNCATE TABLE "Sale", "Restock", "Return", "PriceChange", "Adjustment", "Product", "Store", "StoreChain", "User" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Sale", "Restock", "Return", "PriceChange", "Adjustment", "Alert", "Product", "Store", "StoreChain", "User" RESTART IDENTITY CASCADE`;
 
   console.log("Seeding database...");
 
@@ -157,6 +159,48 @@ async function main() {
       price: 12.0,
       quantity: 60,
     },
+    {
+      name: "Canned Beans",
+      category: "Canned Goods",
+      description: "Canned beans 400g",
+      price: 2.5,
+      quantity: 200,
+    },
+    {
+      name: "Potatoes",
+      category: "Vegetables",
+      description: "2kg bag of potatoes",
+      price: 4.0,
+      quantity: 150,
+    },
+  ];
+
+  const returnReasons = [
+    "Customer return",
+    "Defective product",
+    "Damaged goods",
+    "Wrong item received",
+    "Size/color mismatch",
+    "Quality issue",
+    "Ordered by mistake",
+  ];
+
+  const priceChangeReasons = [
+    "Seasonal discount",
+    "Promotional price change",
+    "Supplier price change",
+    "Price error correction",
+    "Market fluctuation",
+    "Price optimization",
+  ];
+
+  const adjustmentReasons = [
+    "Inventory audit",
+    "Stock correction",
+    "Overstock clearance",
+    "Product expiration",
+    "Internal error adjustment",
+    "Supplier stock discrepancy",
   ];
 
   for (const chain of storeChains) {
@@ -197,10 +241,10 @@ async function main() {
         // Create 20 entries for each product event
         for (let i = 0; i < 20; i++) {
           // Increment the date by a realistic number of days (e.g., 5 to 20 days between events)
-          const daysToAdd = Math.floor(Math.random() * 15) + 5;
+          const daysToAdd = randomInt(0, 15) + 5;
           currentDate.setDate(currentDate.getDate() + daysToAdd);
 
-          const quantityChange = Math.floor(Math.random() * 20) + 1;
+          const quantityChange = randomInt(0, 20) + 1;
 
           // Sale
           await prisma.sale.create({
@@ -220,7 +264,7 @@ async function main() {
               quantity: quantityChange,
               restockDate: currentDate,
               storeId: store.id,
-              supplier: `Supplier ${Math.floor(Math.random() * 3) + 1}`,
+              supplier: `Supplier ${randomInt(0, 5) + 1}`,
             },
           });
 
@@ -228,9 +272,9 @@ async function main() {
           await prisma.return.create({
             data: {
               productId: createdProduct.id,
-              quantity: Math.floor(Math.random() * 3) + 1,
+              quantity: randomInt(0, 5) + 1,
               returnDate: currentDate,
-              reason: "Customer return",
+              reason: returnReasons[randomInt(0, returnReasons.length - 1)],
               storeId: store.id,
             },
           });
@@ -250,14 +294,15 @@ async function main() {
               oldPrice: lastPrice,
               newPrice: newPrice,
               changeDate: currentDate,
-              reason: "Price adjustment",
+              reason:
+                priceChangeReasons[randomInt(0, priceChangeReasons.length - 1)],
               storeId: store.id,
             },
           });
 
           lastPrice = newPrice; // Update the last price
 
-          const adjustedQuantity = Math.floor(Math.random() * 20) - 10; // Random adjustment between -10 and 10
+          const adjustedQuantity = randomInt(0, 20) - 10; // Random adjustment between -10 and 10
 
           // Adjustment
           await prisma.adjustment.create({
@@ -270,10 +315,24 @@ async function main() {
                     : 1
                   : adjustedQuantity, // Avoid 0 quantity
               adjustmentDate: currentDate,
-              reason: "Inventory audit",
+              reason:
+                adjustmentReasons[randomInt(0, adjustmentReasons.length - 1)],
               storeId: store.id,
             },
           });
+
+          // Alert
+          if (randomInt(0, 20) < 5) {
+            await prisma.alert.create({
+              data: {
+                productId: createdProduct.id,
+                storeId: store.id,
+                storeChainId: createdChain.id,
+                threshold: randomInt(0, 20) + 1,
+                isActive: false,
+              },
+            });
+          }
         }
       }
     }

@@ -8,6 +8,10 @@ import {
   renderRestockReport,
   renderReturnReport,
   renderSaleReport,
+  renderLowStockAlertsReport,
+  renderSalesRevenueTrendsReports,
+  renderPriceChangeImpactReport,
+  renderProductReturnRatesReport,
 } from "./renderReports";
 
 export const useReports = (filters?: ReportFilters) => {
@@ -50,6 +54,43 @@ export const useReports = (filters?: ReportFilters) => {
     api.report.getAdjustmentReport.useQuery(queryFilters, {
       enabled: !!queryFilters && queryFilters.eventType === Event.ADJUSTMENT,
     });
+
+  const { data: lowStockAlertsReport, isLoading: lowStockAlertsIsLoading } =
+    api.report.getLowStockAlerts.useQuery(queryFilters, {
+      enabled:
+        !!queryFilters && queryFilters.eventType === Event.LOW_STOCK_ALERTS,
+    });
+
+  const {
+    data: salesRevenueTrendsReport,
+    isLoading: salesRevenueTrendsIsLoading,
+  } = api.report.getSalesRevenueTrends.useQuery(queryFilters, {
+    enabled:
+      !!queryFilters && queryFilters.eventType === Event.SALES_REVENUE_TRENDS,
+  });
+
+  const {
+    data: priceChangeImpactReport,
+    isLoading: priceChangeImpactIsLoading,
+  } = api.report.getPriceChangeImpact.useQuery(queryFilters, {
+    enabled:
+      !!queryFilters && queryFilters.eventType === Event.PRICE_CHANGE_IMPACT,
+  });
+
+  const {
+    data: productReturnRatesReport,
+    isLoading: productReturnRatesIsLoading,
+  } = api.report.getProductReturnRates.useQuery(queryFilters, {
+    enabled:
+      !!queryFilters && queryFilters.eventType === Event.PRODUCT_RETURN_RATES,
+  });
+
+  console.group("Reports");
+  console.log("Low Stock Alerts", lowStockAlertsReport);
+  console.log("Sales Revenue Trends", salesRevenueTrendsReport);
+  console.log("Price Change Impact", priceChangeImpactReport);
+  console.log("Product Return Rates", productReturnRatesReport);
+  console.groupEnd();
 
   const renderReports = useCallback(
     (eventType: Event) => {
@@ -129,6 +170,68 @@ export const useReports = (filters?: ReportFilters) => {
             </div>
           );
 
+        case Event.LOW_STOCK_ALERTS:
+          return lowStockAlertsIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : lowStockAlertsReport ? (
+            renderLowStockAlertsReport(lowStockAlertsReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No low stock alerts found for selected range.
+            </div>
+          );
+
+        case Event.SALES_REVENUE_TRENDS:
+          return salesRevenueTrendsIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : salesRevenueTrendsReport &&
+            salesRevenueTrendsReport.length > 0 ? (
+            renderSalesRevenueTrendsReports(salesRevenueTrendsReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No sales revenue trends found for selected range.
+            </div>
+          );
+
+        case Event.PRICE_CHANGE_IMPACT:
+          return priceChangeImpactIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : priceChangeImpactReport && priceChangeImpactReport.length > 0 ? (
+            renderPriceChangeImpactReport(priceChangeImpactReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No price change impact found for selected range.
+            </div>
+          );
+
+        case Event.PRODUCT_RETURN_RATES:
+          return productReturnRatesIsLoading ? (
+            <LoadingOverlay
+              visible={true}
+              zIndex={1000}
+              overlayProps={{ radius: "sm", blur: 2 }}
+            />
+          ) : productReturnRatesReport &&
+            productReturnRatesReport.length > 0 ? (
+            renderProductReturnRatesReport(productReturnRatesReport)
+          ) : (
+            <div className="my-20 text-center text-gray-500">
+              No product return rates found for selected range.
+            </div>
+          );
+
         default:
           return null;
       }
@@ -144,6 +247,14 @@ export const useReports = (filters?: ReportFilters) => {
       priceChangeReport,
       adjustmentIsLoading,
       adjustmentReport,
+      lowStockAlertsIsLoading,
+      lowStockAlertsReport,
+      salesRevenueTrendsIsLoading,
+      salesRevenueTrendsReport,
+      priceChangeImpactIsLoading,
+      priceChangeImpactReport,
+      productReturnRatesIsLoading,
+      productReturnRatesReport,
     ],
   );
 
