@@ -621,7 +621,9 @@ export const renderProductReturnRatesReport = (
   );
 };
 
-export const renderRadialBarChart = (data: { productName: string; quantitySold: number }[]) => {
+export const renderRadialBarChart = (
+  data: { productName: string; quantitySold: number }[],
+) => {
   const COLORS = [
     "#8884d8",
     "#83a6ed",
@@ -659,7 +661,11 @@ export const renderRadialBarChart = (data: { productName: string; quantitySold: 
           iconSize={10}
           layout="vertical"
           verticalAlign="middle"
-          wrapperStyle={{ top: "50%", right: 0, transform: "translate(0, -50%)" }}
+          wrapperStyle={{
+            top: "50%",
+            right: 20,
+            transform: "translate(0, -50%)",
+          }}
         />
       </RadialBarChart>
     </ResponsiveContainer>
@@ -667,9 +673,9 @@ export const renderRadialBarChart = (data: { productName: string; quantitySold: 
 };
 
 export const renderTreemap = (data: { name: string; size: number }[]) => {
-  const renderCustomizedContent = (props: any) => {
+  const CustomizedContent: React.FC = (props: any) => {
     const { x, y, width, height, name, size } = props;
-  
+
     return (
       <g>
         <rect
@@ -709,7 +715,6 @@ export const renderTreemap = (data: { name: string; size: number }[]) => {
       </g>
     );
   };
-  
 
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -719,13 +724,16 @@ export const renderTreemap = (data: { name: string; size: number }[]) => {
         nameKey="name"
         stroke="#fff"
         fill="#8884d8"
-        content={renderCustomizedContent} 
+        content={<CustomizedContent />}
       />
     </ResponsiveContainer>
   );
 };
 
-export const renderPieChart = (innerData: any[] | undefined, outerData: any[] | undefined) => {
+export const renderPieChart = (
+  innerData: any[] | undefined,
+  outerData: any[] | undefined,
+) => {
   const COLORS = [
     "#8884d8",
     "#82ca9d",
@@ -742,15 +750,19 @@ export const renderPieChart = (innerData: any[] | undefined, outerData: any[] | 
         <Legend
           payload={
             innerData?.map((entry, index) => ({
-              value: entry.name, 
-              type: "square", 
-              color: COLORS[index % COLORS.length], 
+              value: entry.name,
+              type: "square",
+              color: COLORS[index % COLORS.length],
             })) ?? []
           }
-          layout="vertical" 
-          align="right" 
-          verticalAlign="middle" 
-          wrapperStyle={{ paddingLeft: "20px" }} 
+          layout="vertical"
+          align="right"
+          verticalAlign="middle"
+          wrapperStyle={{
+            top: "50%",
+            right: 20,
+            transform: "translate(0, -50%)",
+          }}
         />
 
         {innerData && innerData.length > 0 && (
@@ -763,7 +775,10 @@ export const renderPieChart = (innerData: any[] | undefined, outerData: any[] | 
             fill="#8884d8"
           >
             {innerData.map((entry, index) => (
-              <Cell key={`cell-inner-${entry.name}-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-inner-${entry.name}-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
             ))}
           </Pie>
         )}
@@ -780,22 +795,22 @@ export const renderPieChart = (innerData: any[] | undefined, outerData: any[] | 
             label={({ name, value }) => `${name}: ${value}`}
           >
             {outerData.map((entry, index) => (
-              <Cell key={`cell-outer-${entry.name}-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-outer-${entry.name}-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
             ))}
           </Pie>
         )}
-
       </PieChart>
     </ResponsiveContainer>
   );
 };
 
-
 const aggregateData = (data: any[]) => {
-
   const aggregatedMap = data.reduce((acc, item) => {
     if (!acc[item.name]) {
-      acc[item.name] = { ...item }; 
+      acc[item.name] = { ...item };
     } else {
       acc[item.name].totalRevenue += item.totalRevenue;
       acc[item.name].quantitySold += item.quantitySold;
@@ -805,13 +820,12 @@ const aggregateData = (data: any[]) => {
     return acc;
   }, {});
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return Object.values(aggregatedMap);
 };
 
-
 export const renderComposedChart = (data: any[]) => {
   const aggregatedData = aggregateData(data);
-
 
   return (
     <ResponsiveContainer width="100%" height={600}>
@@ -837,7 +851,11 @@ export const renderComposedChart = (data: any[]) => {
         />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
-        <Legend />
+        <Legend
+          wrapperStyle={{
+            padding: "20px", // Adds padding around the legend
+          }}
+        />
         <Area
           type="monotone"
           dataKey="totalRevenue"
@@ -857,11 +875,7 @@ export const renderComposedChart = (data: any[]) => {
           stroke="#ff7300"
           name="Price Change"
         />
-        <Scatter
-          dataKey="returns"
-          fill="red"
-          name="Returns"
-        />
+        <Scatter dataKey="returns" fill="red" name="Returns" />
       </ComposedChart>
     </ResponsiveContainer>
   );

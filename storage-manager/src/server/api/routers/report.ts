@@ -1,6 +1,5 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { addCurrentTimeToDate } from "~/utils/utils";
 
 export const reportRouter = createTRPCRouter({
@@ -325,55 +324,7 @@ export const reportRouter = createTRPCRouter({
       }));
     }),
 
-    getRadialBarData: protectedProcedure
-      .input(
-        z.object({
-          storeChainId: z.number().nullable(),
-          storeId: z.number().nullable(),
-          startDate: z.date(),
-          endDate: z.date(),
-        }),
-      )
-      .query(async ({ ctx, input }) => {
-        const sales = await ctx.db.sale.groupBy({
-          by: ["productId"],
-          where: {
-            saleDate: {
-              gte: input.startDate,
-              lte: input.endDate,
-            },
-            Store: {
-              storeChainId: input.storeChainId ?? undefined,
-              id: input.storeId ?? undefined,
-            },
-          },
-          _sum: {
-            quantity: true,
-          },
-        });
-
-        const productIds = sales.map((sale) => sale.productId);
-        const products = await ctx.db.product.findMany({
-          where: {
-            id: { in: productIds },
-          },
-          select: {
-            id: true,
-            name: true,
-          },
-        });
-        const productMap = Object.fromEntries(
-          products.map((product) => [product.id, product.name]),
-        );
-
-        return sales.map((sale) => ({
-          productName: productMap[sale.productId] ?? "Unknown Product",
-          quantitySold: sale._sum.quantity ?? 0,
-        }));
-      }),
-
-
-    getTreemapData: protectedProcedure
+  getRadialBarData: protectedProcedure
     .input(
       z.object({
         storeChainId: z.number().nullable(),
@@ -384,7 +335,54 @@ export const reportRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const sales = await ctx.db.sale.groupBy({
-        by: ['productId'],
+        by: ["productId"],
+        where: {
+          saleDate: {
+            gte: input.startDate,
+            lte: input.endDate,
+          },
+          Store: {
+            storeChainId: input.storeChainId ?? undefined,
+            id: input.storeId ?? undefined,
+          },
+        },
+        _sum: {
+          quantity: true,
+        },
+      });
+
+      const productIds = sales.map((sale) => sale.productId);
+      const products = await ctx.db.product.findMany({
+        where: {
+          id: { in: productIds },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+      const productMap = Object.fromEntries(
+        products.map((product) => [product.id, product.name]),
+      );
+
+      return sales.map((sale) => ({
+        productName: productMap[sale.productId] ?? "Unknown Product",
+        quantitySold: sale._sum.quantity ?? 0,
+      }));
+    }),
+
+  getTreemapData: protectedProcedure
+    .input(
+      z.object({
+        storeChainId: z.number().nullable(),
+        storeId: z.number().nullable(),
+        startDate: z.date(),
+        endDate: z.date(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const sales = await ctx.db.sale.groupBy({
+        by: ["productId"],
         where: {
           saleDate: {
             gte: input.startDate,
@@ -412,11 +410,12 @@ export const reportRouter = createTRPCRouter({
 
       return products.map((product) => ({
         name: product.name,
-        size: sales.find((sale) => sale.productId === product.id)?._sum.totalPrice || 0,
+        size:
+          sales.find((sale) => sale.productId === product.id)?._sum
+            .totalPrice ?? 0,
       }));
     }),
 
-     
   getPieChartData: protectedProcedure
     .input(
       z.object({
@@ -424,7 +423,7 @@ export const reportRouter = createTRPCRouter({
         storeId: z.number().nullable(),
         startDate: z.date(),
         endDate: z.date(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const sales = await ctx.db.sale.groupBy({
@@ -456,17 +455,17 @@ export const reportRouter = createTRPCRouter({
       });
 
       const categories = Array.from(
-        new Set(products.map((product) => product.category))
+        new Set(products.map((product) => product.category)),
       );
 
       const data = categories.map((category) => {
         const productsInCategory = products.filter(
-          (product) => product.category === category
+          (product) => product.category === category,
         );
         const totalCategorySales = productsInCategory.reduce((sum, product) => {
           const productSales =
-            sales.find((sale) => sale.productId === product.id)?._sum.quantity ||
-            0;
+            sales.find((sale) => sale.productId === product.id)?._sum
+              .quantity ?? 0;
           return sum + productSales;
         }, 0);
 
@@ -477,7 +476,7 @@ export const reportRouter = createTRPCRouter({
             name: product.name,
             value:
               sales.find((sale) => sale.productId === product.id)?._sum
-                .quantity || 0,
+                .quantity ?? 0,
           })),
         };
       });
@@ -485,23 +484,21 @@ export const reportRouter = createTRPCRouter({
       return data;
     }),
 
-  
-
-    getComposedChartData: protectedProcedure
+  getComposedChartData: protectedProcedure
     .input(
       z.object({
         storeChainId: z.number().nullable(),
         storeId: z.number().nullable(),
         startDate: z.date(),
         endDate: z.date(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const storeFilters = {
         storeChainId: input.storeChainId ?? undefined,
         storeId: input.storeId ?? undefined,
       };
-  
+
       const sales = await ctx.db.sale.groupBy({
         by: ["saleDate"],
         where: {
@@ -519,7 +516,7 @@ export const reportRouter = createTRPCRouter({
           quantity: true,
         },
       });
-  
+
       const returns = await ctx.db.return.groupBy({
         by: ["returnDate"],
         where: {
@@ -554,28 +551,31 @@ export const reportRouter = createTRPCRouter({
           newPrice: true,
         },
       });
-  
 
       const data = sales.map((sale) => {
         const returnData = returns.find(
-          (r) => r.returnDate.toISOString().split("T")[0] === sale.saleDate.toISOString().split("T")[0]
+          (r) =>
+            r.returnDate.toISOString().split("T")[0] ===
+            sale.saleDate.toISOString().split("T")[0],
         );
         const priceChange = priceChanges.find(
-          (p) => p.changeDate.toISOString().split("T")[0] === sale.saleDate.toISOString().split("T")[0]
+          (p) =>
+            p.changeDate.toISOString().split("T")[0] ===
+            sale.saleDate.toISOString().split("T")[0],
         );
-  
+
         return {
-          name: sale.saleDate.toISOString().split("T")[0], 
-          totalRevenue: sale._sum.totalPrice || 0,
-          quantitySold: sale._sum.quantity || 0,
-          returns: returnData?._sum.quantity || 0,
+          name: sale.saleDate.toISOString().split("T")[0],
+          totalRevenue: sale._sum.totalPrice ?? 0,
+          quantitySold: sale._sum.quantity ?? 0,
+          returns: returnData?._sum.quantity ?? 0,
           priceChange:
-            (priceChange?._sum.newPrice || 0) - (priceChange?._sum.oldPrice || 0),
+            (priceChange?._sum.newPrice ?? 0) -
+            (priceChange?._sum.oldPrice ?? 0),
         };
       });
-  
+
       console.log("Formatted Data for Composed Chart:", data);
       return data;
     }),
-  
 });
