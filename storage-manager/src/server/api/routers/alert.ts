@@ -4,7 +4,7 @@ import { sendEmail } from "~/utils/email";
 import { db } from "~/server/db";
 import cron from "node-cron";
 
-cron.schedule("*/5 * * * *", () => {
+cron.schedule("*/1 * * * *", () => {
   console.log("Running stock level check...");
   checkStockLevels()
     .then(() => {

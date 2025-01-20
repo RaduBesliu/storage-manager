@@ -824,8 +824,26 @@ const aggregateData = (data: any[]) => {
   return Object.values(aggregatedMap);
 };
 
-export const renderComposedChart = (data: any[]) => {
-  const aggregatedData = aggregateData(data);
+export const renderComposedChart = (
+  data: {
+    name: string | undefined;
+    totalRevenue: number;
+    quantitySold: number;
+    returns: number;
+    priceChange: number;
+  }[],
+) => {
+  const sortedData = data.sort((a, b) => {
+    if (!a.name || !b.name) {
+      return 0;
+    }
+
+    const dateA = new Date(a.name);
+    const dateB = new Date(b.name);
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  const aggregatedData = aggregateData(sortedData);
 
   return (
     <ResponsiveContainer width="100%" height={600}>
